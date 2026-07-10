@@ -1,23 +1,27 @@
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.dependencies
+import org.gradle.kotlin.dsl.getByType
 
 class HiltConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
-        with(target) {
-            with(pluginManager) {
-                apply("com.google.dagger.hilt.android")
-                apply("org.jetbrains.kotlin.kapt") // optional, but Hilt still needs kapt for compiler
-                // Alternatively, use KSP for Hilt: apply("com.google.devtools.ksp")
-                // We'll use kapt for compatibility.
+        target.run {
+            apply(plugin = "com.google.dagger.hilt.android")
+            apply(plugin = "com.google.devtools.ksp")
+
+            // Add Hilt dependencies
+            dependencies {
+                add("implementation", libs.findLibrary("hilt-android").get())
+                add("ksp", libs.findLibrary("hilt-compiler").get())
+                // For instrumentation tests
+                add("androidTestImplementation", libs.findLibrary("hilt-android").get())
+                add("androidTestImplementation", libs.findLibrary("hilt-compiler").get())
             }
 
-            dependencies {
-                "implementation"(libs.hilt.android)
-                "kapt"(libs.hilt.compiler)
-                // For instrumentation tests
-                "androidTestImplementation"(libs.hilt.android)
-                "kaptAndroidTest"(libs.hilt.compiler)
+            // Hilt Java compiler args
+            extensions.getByType<com.google.devtools.ksp.gradle.KspExtension>().apply {
+                arg("dagger.hilt.disableModulesHaveInstallInCheck", "true")
             }
         }
     }

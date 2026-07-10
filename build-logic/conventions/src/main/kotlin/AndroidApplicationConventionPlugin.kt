@@ -1,17 +1,16 @@
 import com.android.build.gradle.AppExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.dependencies
-import org.gradle.kotlin.dsl.kotlin
+import org.gradle.kotlin.dsl.getByType
 
 class AndroidApplicationConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
-        with(target) {
-            with(pluginManager) {
-                apply("com.android.application")
-                apply("org.jetbrains.kotlin.android")
-            }
+        target.run {
+            apply(plugin = "com.android.application")
+            apply(plugin = "org.jetbrains.kotlin.android")
 
             extensions.configure<AppExtension> {
                 compileSdk = 35
@@ -28,25 +27,38 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
                     jvmTarget = "17"
                 }
                 buildFeatures {
-                    buildConfig = true
                     compose = true
+                    buildConfig = true
                 }
-                composeOptions {
-                    kotlinCompilerExtensionVersion = "1.5.4" // matches Compose BOM
-                }
+                // Enable view binding for any XML layouts (if needed)
+                // viewBinding = true
+                // dataBinding = false
             }
 
+            // Apply common dependencies for application modules
             dependencies {
-                "implementation"(platform(libs.androidx.compose.bom))
-                "implementation"(libs.androidx.compose.ui)
-                "implementation"(libs.androidx.compose.ui.tooling)
-                "implementation"(libs.androidx.compose.ui.tooling.preview)
-                "implementation"(libs.androidx.compose.material3)
-                "implementation"(libs.androidx.compose.material.icons)
-                "implementation"(libs.androidx.navigation.compose)
-                "implementation"(libs.androidx.hilt.navigation.compose)
-                "implementation"(libs.androidx.lifecycle.compose)
-                "implementation"(libs.androidx.activity.compose)
+                add("implementation", platform(libs.findLibrary("androidx-compose-bom").get()))
+                add("implementation", libs.findLibrary("androidx-compose-ui").get())
+                add("implementation", libs.findLibrary("androidx-compose-ui-tooling-preview").get())
+                add("implementation", libs.findLibrary("androidx-compose-material3").get())
+                add("implementation", libs.findLibrary("androidx-compose-material-icons").get())
+                add("implementation", libs.findLibrary("androidx-compose-foundation").get())
+                add("implementation", libs.findLibrary("androidx-compose-runtime").get())
+                add("implementation", libs.findLibrary("androidx-lifecycle-compose").get())
+                add("implementation", libs.findLibrary("androidx-lifecycle-viewmodel").get())
+                add("implementation", libs.findLibrary("androidx-activity-compose").get())
+                add("implementation", libs.findLibrary("androidx-navigation-compose").get())
+                add("implementation", libs.findLibrary("androidx-hilt-navigation-compose").get())
+                add("implementation", libs.findLibrary("kotlinx-coroutines-core").get())
+                add("implementation", libs.findLibrary("kotlinx-coroutines-android").get())
+
+                // Testing
+                add("testImplementation", libs.findLibrary("junit").get())
+                add("androidTestImplementation", libs.findLibrary("androidx-junit").get())
+                add("androidTestImplementation", libs.findLibrary("androidx-espresso-core").get())
+                add("androidTestImplementation", libs.findLibrary("androidx-compose-ui-test").get())
+                add("debugImplementation", libs.findLibrary("androidx-compose-ui-tooling").get())
+                add("debugImplementation", libs.findLibrary("androidx-compose-ui-test-manifest").get())
             }
         }
     }

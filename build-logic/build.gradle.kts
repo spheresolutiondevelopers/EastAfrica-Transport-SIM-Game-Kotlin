@@ -9,37 +9,13 @@ repositories {
 }
 
 dependencies {
-    implementation(libs.kotlin.gradle.plugin)
-    implementation(libs.android.gradle.plugin)
-    implementation(libs.hilt.gradle.plugin)
-    implementation(libs.ksp.gradle.plugin)
+    // We need the Android Gradle Plugin and Kotlin Gradle Plugin to write convention plugins
+    implementation(libs.android.gradlePlugin) // will be added via version catalog
+    implementation(libs.kotlin.gradlePlugin)
+    implementation(libs.hilt.gradlePlugin)
+    implementation(libs.ksp.gradlePlugin)
+    implementation(libs.assetPack.gradlePlugin)
 }
 
-gradlePlugin {
-    plugins {
-        create("androidApplication") {
-            id = "transportsim.android.application"
-            implementationClass = "AndroidApplicationConventionPlugin"
-        }
-        create("androidLibrary") {
-            id = "transportsim.android.library"
-            implementationClass = "AndroidLibraryConventionPlugin"
-        }
-        create("hilt") {
-            id = "transportsim.hilt"
-            implementationClass = "HiltConventionPlugin"
-        }
-        create("kotlinJvm") {
-            id = "transportsim.kotlin.jvm"
-            implementationClass = "KotlinJvmConventionPlugin"
-        }
-        create("native") {
-            id = "transportsim.native"
-            implementationClass = "NativeConventionPlugin"
-        }
-        create("assetPack") {
-            id = "transportsim.asset.pack"
-            implementationClass = "AssetPackConventionPlugin"
-        }
-    }
-}
+// Ensure the version catalog is accessible from the convention plugins
+// (it's already accessible via the libs extension)
