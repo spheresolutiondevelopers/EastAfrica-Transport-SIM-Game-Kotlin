@@ -1,0 +1,4 @@
+<resources>
+    <bool name="enable_cloud_save">true</bool>
+    <bool name="enable_tutorial">true</bool>
+</resources>

@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">TransportSim</string>
+    <string name="simulation_loading">Inaanzisha Simulation…</string>
+    <string name="simulation_ready">SIMULATION TAYARI</string>
+    <string name="simulation_paused">IMESIMAMISHWA</string>
+    <string name="simulation_exit">✕ TOKA</string>
+    <string name="simulation_resume">▶ ENDELEA</string>
+    <string name="training_center">Kituo cha Mafunzo</string>
+    <string name="training_no_scenarios">Hakuna Mafunzo Yanayopatikana</string>
+    <string name="training_start">Anza</string>
+    <string name="training_completed">✅ Imekamilika</string>
+</resources>
