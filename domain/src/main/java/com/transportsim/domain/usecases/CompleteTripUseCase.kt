@@ -14,7 +14,7 @@ class CompleteTripUseCase(
             // 1. Update vehicle odometer and condition
             val vehicle = playerRepository.getPlayerVehicle(vehicleId)
             val updatedVehicle = vehicle.copy(
-                odometerKm = vehicle.odometerKm + distanceKm,
+                odometerKm = vehicle.odometerKm + distanceKm.toFloat(),
                 conditionPct = (vehicle.conditionPct - 0.05f).coerceAtLeast(0f)
             )
             playerRepository.updateVehicle(updatedVehicle)

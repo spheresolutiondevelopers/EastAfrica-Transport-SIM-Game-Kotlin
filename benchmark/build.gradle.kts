@@ -1,6 +1,6 @@
 plugins {
     id("transportsim.android.application")
-    alias(libs.plugins.hilt)
+    id("transportsim.hilt")
 }
 
 android {

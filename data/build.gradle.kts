@@ -1,7 +1,6 @@
 plugins {
     id("transportsim.android.library")
     id("transportsim.hilt")
-    alias(libs.plugins.ksp)
 }
 
 android {
@@ -24,13 +23,14 @@ dependencies {
 
     // DataStore (encrypted)
     implementation(libs.androidx.datastore.preferences)
-    implementation(libs.androidx.security.crypto.datastore)
+    implementation(libs.androidx.security.crypto)
+    implementation(libs.datastore.encryption)
 
     // WorkManager
     implementation(libs.androidx.work.runtime)
 
     // Moshi (JSON parsing)
-    implementation(libs.moshi)
+    implementation(libs.moshi.core)
     implementation(libs.moshi.kotlin)
     ksp(libs.moshi.codegen)
 
@@ -38,9 +38,6 @@ dependencies {
     // Hilt (already in Hilt convention)
 
     // Testing
-    testImplementation(libs.junit)
-    testImplementation(libs.kotlinx.coroutines.test)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
+    testImplementation(libs.kotlinx.coroutines.testing)
     androidTestImplementation(libs.androidx.room.testing)
 }

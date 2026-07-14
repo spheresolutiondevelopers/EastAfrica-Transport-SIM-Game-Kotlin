@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace = "com.transportsim.native"
+    namespace = "com.transportsim.native_lib"
     
     defaultConfig {
         externalNativeBuild {

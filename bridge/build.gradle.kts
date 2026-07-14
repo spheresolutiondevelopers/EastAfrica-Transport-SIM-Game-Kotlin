@@ -14,7 +14,7 @@ android {
             }
         }
         ndk {
-            abiFilters("arm64-v8a")
+            abiFilters.add("arm64-v8a")
         }
     }
     
@@ -30,7 +30,7 @@ dependencies {
     implementation(project(":native"))
     
     // Moshi for serializing/deserializing configs to C++
-    implementation(libs.moshi)
+    implementation(libs.moshi.core)
     implementation(libs.moshi.kotlin)
     ksp(libs.moshi.codegen)
     

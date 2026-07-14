@@ -1,7 +1,6 @@
-plugins {
+ plugins {
     id("transportsim.android.application")
     id("transportsim.hilt")
-    alias(libs.plugins.compose.compiler)
 }
 
 android {
@@ -10,7 +9,7 @@ android {
     defaultConfig {
         applicationId = "com.transportsim.app"
         versionCode = 1
-        versionName = "1.0.0"
+        versionName = "1.0.0" 
         
         // Enable vector drawables for backward compatibility
         vectorDrawables {
@@ -54,8 +53,4 @@ dependencies {
     // Accompanist for utilities
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.35.0-alpha")
     implementation("com.google.accompanist:accompanist-permissions:0.35.0-alpha")
-    
-    // Testing
-    androidTestImplementation(libs.androidx.compose.ui.test)
-    androidTestImplementation(libs.androidx.espresso.core)
 }

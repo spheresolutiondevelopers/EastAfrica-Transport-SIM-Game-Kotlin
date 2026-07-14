@@ -13,8 +13,8 @@ class ScoreTestTrackUseCase {
     ): TrainingScore {
         // Scoring algorithm for training scenarios
         val speedBonus = (distanceKm / durationSeconds).coerceAtMost(1.5f) * 10
-        val violationPenalty = speedLimitViolations * 5
-        val collisionPenalty = collisions * 25
+        val violationPenalty = speedLimitViolations.toFloat() * 5
+        val collisionPenalty = collisions.toFloat() * 25
         val stopBonus = stopAccuracy * 15
         val satisfactionBonus = passengerSatisfaction * 10
 

@@ -1,5 +1,6 @@
 package com.transportsim.domain.repositories
 
+import com.transportsim.domain.models.DailyReward
 import com.transportsim.domain.models.DailyRewardTrack
 import kotlinx.coroutines.flow.Flow
 

@@ -2,6 +2,7 @@ package com.transportsim.domain.repositories
 
 import com.transportsim.domain.models.PlayerProfile
 import com.transportsim.domain.models.Vehicle
+import com.transportsim.domain.models.VehicleStatus
 import kotlinx.coroutines.flow.Flow
 
 interface PlayerRepository {

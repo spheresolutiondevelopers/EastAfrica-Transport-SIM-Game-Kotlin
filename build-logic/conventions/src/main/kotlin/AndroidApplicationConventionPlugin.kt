@@ -1,44 +1,56 @@
-import com.android.build.gradle.AppExtension
+import com.android.build.api.dsl.ApplicationExtension
+import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.getByType
+import org.gradle.kotlin.dsl.withType
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinAndroidProjectExtension
+import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 
 class AndroidApplicationConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         target.run {
-            apply(plugin = "com.android.application")
-            apply(plugin = "org.jetbrains.kotlin.android")
+            val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
 
-            extensions.configure<AppExtension> {
+            with(pluginManager) {
+                apply("com.android.application")
+                apply("org.jetbrains.kotlin.android")
+                apply("org.jetbrains.kotlin.plugin.compose")
+            }
+
+            extensions.configure<ApplicationExtension> {
                 compileSdk = 35
                 defaultConfig {
+                    applicationId = "com.transportsim.app"
                     minSdk = 26
                     targetSdk = 35
                     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
                 }
                 compileOptions {
-                    sourceCompatibility = JavaVersion.VERSION_17
-                    targetCompatibility = JavaVersion.VERSION_17
-                }
-                kotlinOptions {
-                    jvmTarget = "17"
+                    sourceCompatibility = JavaVersion.VERSION_21
+                    targetCompatibility = JavaVersion.VERSION_21
                 }
                 buildFeatures {
                     compose = true
                     buildConfig = true
                 }
-                // Enable view binding for any XML layouts (if needed)
-                // viewBinding = true
-                // dataBinding = false
+            }
+
+            extensions.configure<KotlinAndroidProjectExtension> {
+                compilerOptions {
+                    jvmTarget.set(JvmTarget.JVM_21)
+                }
             }
 
             // Apply common dependencies for application modules
             dependencies {
                 add("implementation", platform(libs.findLibrary("androidx-compose-bom").get()))
-                add("implementation", libs.findLibrary("androidx-compose-ui").get())
+                add("implementation", libs.findLibrary("androidx-compose-ui-core").get())
                 add("implementation", libs.findLibrary("androidx-compose-ui-tooling-preview").get())
                 add("implementation", libs.findLibrary("androidx-compose-material3").get())
                 add("implementation", libs.findLibrary("androidx-compose-material-icons").get())
@@ -56,8 +68,8 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
                 add("testImplementation", libs.findLibrary("junit").get())
                 add("androidTestImplementation", libs.findLibrary("androidx-junit").get())
                 add("androidTestImplementation", libs.findLibrary("androidx-espresso-core").get())
-                add("androidTestImplementation", libs.findLibrary("androidx-compose-ui-test").get())
-                add("debugImplementation", libs.findLibrary("androidx-compose-ui-tooling").get())
+                add("androidTestImplementation", libs.findLibrary("androidx-compose-ui-test-junit4").get())
+                add("debugImplementation", libs.findLibrary("androidx-compose-ui-tooling-core").get())
                 add("debugImplementation", libs.findLibrary("androidx-compose-ui-test-manifest").get())
             }
         }

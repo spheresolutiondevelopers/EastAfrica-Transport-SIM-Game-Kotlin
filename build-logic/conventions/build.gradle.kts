@@ -10,6 +10,14 @@ repositories {
 
 // This module publishes the convention plugins
 dependencies {
+    // We need the Android Gradle Plugin and Kotlin Gradle Plugin to write convention plugins
+    implementation(libs.android.gradlePlugin)
+    implementation(libs.kotlin.gradlePlugin)
+    implementation(libs.compose.compiler.gradlePlugin)
+    implementation(libs.hilt.gradlePlugin)
+    implementation(libs.asset.pack.gradlePlugin)
+    implementation(libs.ksp.gradlePlugin)
+
     // Make the version catalog available to the plugins
     implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
 }
