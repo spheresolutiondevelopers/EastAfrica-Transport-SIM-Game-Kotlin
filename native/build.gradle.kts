@@ -9,11 +9,11 @@ android {
         externalNativeBuild {
             cmake {
                 cppFlags("-std=c++17 -frtti -fexceptions -O3 -DNDEBUG")
-                arguments(
-                    "-DANDROID_STL=c++_shared",
-                    "-DCMAKE_BUILD_TYPE=Release"
-                )
+                arguments("-DANDROID_STL=c++_shared")
             }
+        }
+        ndk {
+            abiFilters.add("arm64-v8a")
         }
     }
     

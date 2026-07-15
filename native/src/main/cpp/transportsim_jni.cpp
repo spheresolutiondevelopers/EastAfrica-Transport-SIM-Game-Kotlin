@@ -2,6 +2,7 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <android/native_window_jni.h>
 #include <nlohmann/json.hpp>
 
 #include "../physics/PhysicsEngine.h"

@@ -5,24 +5,7 @@ plugins {
 
 android {
     namespace = "com.transportsim.bridge"
-    
-    defaultConfig {
-        externalNativeBuild {
-            cmake {
-                cppFlags("-std=c++17 -frtti -fexceptions")
-                arguments("-DANDROID_STL=c++_shared")
-            }
-        }
-        ndk {
-            abiFilters.add("arm64-v8a")
-        }
-    }
-    
-    externalNativeBuild {
-        cmake {
-            path = file("src/main/cpp/CMakeLists.txt")
-        }
-    }
+    // No native build configuration – the .so is provided by the :native module
 }
 
 dependencies {

@@ -14,6 +14,9 @@ pluginManagement {
         id("com.android.asset-pack") version "9.2.1"
     }
 }
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+}
 
 dependencyResolutionManagement {
     repositories {

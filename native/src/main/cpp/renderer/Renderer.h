@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <jni.h>
 #include <android/native_window.h>
 #include <Eigen/Dense>
 #include "../physics/PhysicsEngine.h"

@@ -125,7 +125,7 @@ void Renderer::setCamera(const Eigen::Vector3f& eye, const Eigen::Vector3f& targ
     m_viewMatrix.block<3, 1>(0, 0) = right;
     m_viewMatrix.block<3, 1>(0, 1) = up;
     m_viewMatrix.block<3, 1>(0, 2) = -forward;
-    m_viewMatrix.block<3, 1>(0, 3) = -right.dot(eye), -up.dot(eye), forward.dot(eye);
+    m_viewMatrix.block<3, 1>(0, 3) << -right.dot(eye), -up.dot(eye), forward.dot(eye);
 }
 
 void Renderer::shutdown() {

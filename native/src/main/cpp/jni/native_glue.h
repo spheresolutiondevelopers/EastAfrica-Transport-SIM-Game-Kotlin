@@ -3,6 +3,13 @@
 #include <jni.h>
 #include <string>
 #include <memory>
+#include <android/log.h>
+
+#define LOG_TAG "TransportSimNative"
+#define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
+#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
+#define LOGW(...) __android_log_print(ANDROID_LOG_WARN, LOG_TAG, __VA_ARGS__)
+#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 
 // Forward declarations
 class PhysicsEngine;
@@ -11,6 +18,9 @@ class Renderer;
 
 // Global state for native callbacks
 struct NativeGlobals {
+    NativeGlobals();
+    ~NativeGlobals();
+
     std::unique_ptr<PhysicsEngine> physicsEngine;
     std::unique_ptr<TerrainManager> terrainManager;
     std::unique_ptr<Renderer> renderer;

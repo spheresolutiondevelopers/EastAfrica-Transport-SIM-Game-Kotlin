@@ -19,7 +19,7 @@ class ScoreTestTrackUseCase {
         val satisfactionBonus = passengerSatisfaction * 10
 
         val rawScore = 50 + speedBonus + stopBonus + satisfactionBonus - violationPenalty - collisionPenalty
-        val finalScore = rawScore.coerceIn(0, 100)
+        val finalScore = rawScore.coerceIn(0f, 100f)
 
         val grade = when {
             finalScore >= 90 -> "A (Excellent)"

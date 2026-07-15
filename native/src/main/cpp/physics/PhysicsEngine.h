@@ -8,12 +8,89 @@
 #include <Eigen/Dense>
 
 // Forward declarations
-struct VehicleSpec;
-struct RoadSegment;
-struct BusStop;
 class PacejkaModel;
 class AckermannSolver;
 class SuspensionModel;
+
+// Vehicle specification struct
+struct VehicleSpec {
+    int vehicleId;
+    std::string typeId;
+    float massKg;
+    float maxPayloadKg;
+    float wheelbaseM;
+    float trackWidthM;
+    float comHeightLadenM;
+    float momentInertiaIzz;
+    float maxSpeedKph;
+    float peakAccelMs2;
+    float emergencyBrakeMs2;
+    float minTurnRadiusM;
+    float aeroDragCd;
+    float frontalAreaM2;
+    float enginePowerKw;
+    float peakTorqueNm;
+    float fuelCapacityL;
+    float fuelConsumptionBase;
+    float pacejkaB;
+    float pacejkaC;
+    float pacejkaD;
+    float pacejkaE;
+    float frontSpringRate;
+    float rearSpringRate;
+    float frontDamping;
+    float rearDamping;
+    float currentFuelL;
+    float engineHealthPct;
+    float tyreConditionPct;
+    int passengerCapacity;
+    float fuelEffMult;
+    float brakeMs2;
+    float navAccuracyPct;
+};
+
+// Road segment struct
+struct RoadSegment {
+    int segmentId;
+    float distAlongRouteM;
+    float segmentLengthM;
+    float frictionMuDry;
+    float frictionMuWet;
+    float iriValue;
+    int iriClass;
+    float superelevationDeg;
+    int speedLimitKph;
+    int lanes;
+    float roadWidthM;
+    bool hasCrosswind;
+    bool hasPothole;
+    bool isIntersection;
+    std::string surfaceTypeId;
+};
+
+// Bus stop struct
+struct BusStop {
+    int stopId;
+    int stopOrder;
+    std::string stopName;
+    float worldX;
+    float worldZ;
+    float distFromOriginKm;
+    int dwellTimeS;
+    float onTimeToleranceM;
+    int maxPassengers;
+    float passengerDemandPeak;
+    std::string stopType;
+    bool hasShelter;
+    bool isTerminal;
+};
+
+// Traffic light state
+struct TrafficLightState {
+    int index;
+    int phase;  // 0=green, 1=amber, 2=red
+    int timerMs;
+};
 
 // Vehicle state structure
 struct VehicleState {
@@ -114,84 +191,4 @@ private:
     void checkBusStops();
     void checkSpeedLimits();
     void updateScore(float dt);
-};
-
-// Vehicle specification struct
-struct VehicleSpec {
-    int vehicleId;
-    std::string typeId;
-    float massKg;
-    float maxPayloadKg;
-    float wheelbaseM;
-    float trackWidthM;
-    float comHeightLadenM;
-    float momentInertiaIzz;
-    float maxSpeedKph;
-    float peakAccelMs2;
-    float emergencyBrakeMs2;
-    float minTurnRadiusM;
-    float aeroDragCd;
-    float frontalAreaM2;
-    float enginePowerKw;
-    float peakTorqueNm;
-    float fuelCapacityL;
-    float fuelConsumptionBase;
-    float pacejkaB;
-    float pacejkaC;
-    float pacejkaD;
-    float pacejkaE;
-    float frontSpringRate;
-    float rearSpringRate;
-    float frontDamping;
-    float rearDamping;
-    float currentFuelL;
-    float engineHealthPct;
-    float tyreConditionPct;
-    int passengerCapacity;
-    float fuelEffMult;
-    float brakeMs2;
-    float navAccuracyPct;
-};
-
-// Road segment struct
-struct RoadSegment {
-    int segmentId;
-    float distAlongRouteM;
-    float segmentLengthM;
-    float frictionMuDry;
-    float frictionMuWet;
-    float iriValue;
-    int iriClass;
-    float superelevationDeg;
-    int speedLimitKph;
-    int lanes;
-    float roadWidthM;
-    bool hasCrosswind;
-    bool hasPothole;
-    bool isIntersection;
-    std::string surfaceTypeId;
-};
-
-// Bus stop struct
-struct BusStop {
-    int stopId;
-    int stopOrder;
-    std::string stopName;
-    float worldX;
-    float worldZ;
-    float distFromOriginKm;
-    int dwellTimeS;
-    float onTimeToleranceM;
-    int maxPassengers;
-    float passengerDemandPeak;
-    std::string stopType;
-    bool hasShelter;
-    bool isTerminal;
-};
-
-// Traffic light state
-struct TrafficLightState {
-    int index;
-    int phase;  // 0=green, 1=amber, 2=red
-    int timerMs;
 };

@@ -13,24 +13,54 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/../jniLibs/${ANDROID_ABI})
 
 # Find required packages
-find_package(OpenGLES REQUIRED)
-find_package(EGL REQUIRED)
+include(FetchContent)
+
+# nlohmann/json
+FetchContent_Declare(
+    json
+    URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz
+)
+FetchContent_MakeAvailable(json)
+
+# Eigen
+set(EIGEN_BUILD_TESTING OFF CACHE BOOL "Disable Eigen internal tests" FORCE)
+set(BUILD_TESTING OFF CACHE BOOL "Disable testing globally" FORCE)
+set(EIGEN_BUILD_DOC OFF CACHE BOOL "Disable Eigen documentation" FORCE)
+set(EIGEN_BUILD_BLAS OFF CACHE BOOL "Disable Eigen BLAS library" FORCE)
+set(EIGEN_BUILD_LAPACK OFF CACHE BOOL "Disable Eigen LAPACK library" FORCE)
+FetchContent_Declare(
+    eigen
+    URL https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz
+)
+FetchContent_MakeAvailable(eigen)
 
 # Add the source files
 set(SOURCES
     # JNI bindings
-    jni/native_glue.cpp
-    jni/transportsim_jni.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/jni/native_glue.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/jni/callback_bridge.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/transportsim_jni.cpp
     
     # Physics engine
-    physics/PhysicsEngine.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/physics/PhysicsEngine.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/physics/Pacejka.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/physics/Ackermann.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/physics/Suspension.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/physics/VehicleDynamics.cpp
     
     # Terrain system
-    terrain/TerrainManager.cpp
-    terrain/TerrainChunk.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/terrain/TerrainManager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/terrain/TerrainChunk.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/terrain/TerrainLoader.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/terrain/FrictionTable.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/terrain/Interpolation.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/terrain/VBOArena.cpp
     
     # Renderer
-    renderer/Renderer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/renderer/Renderer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/renderer/GLTFLoader.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/renderer/ShaderManager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/renderer/TextureManager.cpp
 )
 
 # Create shared library
@@ -53,6 +83,8 @@ target_link_libraries(transportsim_native
     EGL
     c++_shared
     m
+    nlohmann_json::nlohmann_json
+    Eigen3::Eigen
 )
 
 # Define preprocessor macros
@@ -69,8 +101,9 @@ target_compile_options(transportsim_native PRIVATE
     -fno-exceptions
 )
 
-# For ARM64, enable NEON optimizations
-if(ANDROID_ABI STREQUAL "arm64-v8a")
+# For ARM64, NEON is always available, -mfpu=neon is not needed and not supported by Clang for aarch64
+# For ARMv7, it might be needed, but this project seems to target arm64-v8a primarily
+if(ANDROID_ABI STREQUAL "armeabi-v7a")
     target_compile_options(transportsim_native PRIVATE -mfpu=neon)
 endif()
 
