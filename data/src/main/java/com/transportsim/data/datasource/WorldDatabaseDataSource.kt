@@ -1,11 +1,11 @@
 package com.transportsim.data.datasource
 
 import android.content.Context
+import android.database.Cursor
 import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.sqlite.db.SupportSQLiteOpenHelper
 import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
-import net.sqlcipher.database.SupportFactory
-import net.sqlcipher.database.SQLiteDatabase
+import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -19,7 +19,8 @@ class WorldDatabaseDataSource @Inject constructor(
     private val passphrase = "world_assets_read_only" // Could be static since it's read-only
 
     private val openHelper: SupportSQLiteOpenHelper by lazy {
-        val factory = SupportFactory(SQLiteDatabase.getBytes(passphrase.toCharArray()))
+        System.loadLibrary("sqlcipher")
+        val factory = SupportOpenHelperFactory(passphrase.toByteArray())
         val config = SupportSQLiteOpenHelper.Configuration(
             context = context,
             name = dbName,
@@ -47,9 +48,9 @@ class WorldDatabaseDataSource @Inject constructor(
             for (i in 0 until cursor.columnCount) {
                 val columnName = cursor.getColumnName(i)
                 when (cursor.getType(i)) {
-                    SupportSQLiteDatabase.COLUMN_TYPE_TEXT -> row[columnName] = cursor.getString(i)
-                    SupportSQLiteDatabase.COLUMN_TYPE_INTEGER -> row[columnName] = cursor.getLong(i)
-                    SupportSQLiteDatabase.COLUMN_TYPE_FLOAT -> row[columnName] = cursor.getDouble(i)
+                    Cursor.FIELD_TYPE_STRING -> row[columnName] = cursor.getString(i)
+                    Cursor.FIELD_TYPE_INTEGER -> row[columnName] = cursor.getLong(i)
+                    Cursor.FIELD_TYPE_FLOAT -> row[columnName] = cursor.getDouble(i)
                     else -> row[columnName] = cursor.getString(i)
                 }
             }

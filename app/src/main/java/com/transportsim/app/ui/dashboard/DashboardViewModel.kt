@@ -3,6 +3,8 @@ package com.transportsim.app.ui.dashboard
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.transportsim.app.audio.AudioManager
+import com.transportsim.app.ui.dashboard.models.*
 import com.transportsim.domain.models.*
 import com.transportsim.domain.repositories.*
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,8 +19,11 @@ class DashboardViewModel @Inject constructor(
     private val routeRepository: RouteRepository,
     private val missionRepository: MissionRepository,
     private val economyRepository: EconomyRepository,
+    private val audioManager: AudioManager,
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+    
+    val isMuted: StateFlow<Boolean> = audioManager.isMuted
     
     private val _uiState = MutableStateFlow(DashboardUiState())
     val uiState: StateFlow<DashboardUiState> = _uiState.asStateFlow()
@@ -27,12 +32,16 @@ class DashboardViewModel @Inject constructor(
         loadDashboardData()
     }
     
+    fun toggleMute() {
+        audioManager.toggleMute()
+    }
+
     private fun loadDashboardData() {
+        // Observe player profile and balance
         viewModelScope.launch {
-            // Load player profile
             playerRepository.observeProfile()
                 .combine(economyRepository.observeBalance()) { profile, balance ->
-                    Triple(profile, balance, Unit)
+                    profile to balance
                 }
                 .collect { (profile, balance) ->
                     _uiState.update { state ->
@@ -44,8 +53,10 @@ class DashboardViewModel @Inject constructor(
                         )
                     }
                 }
-            
-            // Load fleet summary
+        }
+
+        // Observe fleet summary and update mapVehicles
+        viewModelScope.launch {
             fleetRepository.observeFleet()
                 .collect { vehicles ->
                     val categories = VehicleCategory.values().map { category ->
@@ -57,16 +68,29 @@ class DashboardViewModel @Inject constructor(
                             total = total
                         )
                     }
+                    val mapVehicles = vehicles.map { vehicle ->
+                        MapVehicle(
+                            id = vehicle.vehicleId.toString(),
+                            x = (200..800).random().toFloat(),
+                            y = (100..500).random().toFloat(),
+                            category = VehicleCategory.values().find { 
+                                vehicle.typeId.startsWith(it.name.lowercase()) 
+                            } ?: VehicleCategory.BUS
+                        )
+                    }
                     _uiState.update { state ->
                         state.copy(
                             categories = categories,
                             vehicles = vehicles,
+                            mapVehicles = mapVehicles,
                             selectedVehicleId = vehicles.firstOrNull()?.vehicleId
                         )
                     }
                 }
-            
-            // Load active missions
+        }
+        
+        // Observe active missions
+        viewModelScope.launch {
             missionRepository.observeMissions()
                 .collect { missions ->
                     val activeMissions = missions.filter { it.status == MissionStatus.IN_PROGRESS }
@@ -74,23 +98,30 @@ class DashboardViewModel @Inject constructor(
                         state.copy(activeMissions = activeMissions)
                     }
                 }
-            
-            // Load route statuses
+        }
+        
+        // Observe route statuses combined with player level
+        viewModelScope.launch {
             routeRepository.observeRoutes()
-                .collect { routes ->
+                .combine(playerRepository.observeProfile()) { routes, profile ->
+                    routes to profile.level
+                }
+                .collect { (routes, playerLevel) ->
                     val statuses = routes.map { route ->
                         RouteStatus(
-                            routeId = route.routeId,
+                            routeId = route.id,
                             name = route.name,
-                            status = if (route.isUnlocked) "LIVE" else "LOCKED"
+                            status = if (route.unlockLevel <= playerLevel) "LIVE" else "LOCKED"
                         )
                     }
                     _uiState.update { state ->
                         state.copy(routeStatuses = statuses)
                     }
                 }
-            
-            // Load today's stats
+        }
+        
+        // Load today's stats and alerts
+        viewModelScope.launch {
             val todayStats = economyRepository.getDailyRewards()
             _uiState.update { state ->
                 state.copy(
@@ -101,7 +132,6 @@ class DashboardViewModel @Inject constructor(
                 )
             }
             
-            // Load fuel alerts
             val vehicles = fleetRepository.getOwnedVehicles()
             val alerts = vehicles
                 .filter { it.fuelLevelPct < 40 }
@@ -110,50 +140,12 @@ class DashboardViewModel @Inject constructor(
                 state.copy(fuelAlerts = alerts)
             }
             
-            // Select first route
             val routes = routeRepository.getAllRoutes()
-            if (routes.isNotEmpty()) {
+            if (routes.isNotEmpty() && _uiState.value.selectedRouteId == null) {
                 _uiState.update { state ->
-                    state.copy(selectedRouteId = routes.first().routeId)
+                    state.copy(selectedRouteId = routes.first().id)
                 }
             }
         }
     }
 }
-
-data class DashboardUiState(
-    val categories: List<CategoryProgress> = emptyList(),
-    val vehicles: List<Vehicle> = emptyList(),
-    val activeMissions: List<Mission> = emptyList(),
-    val routeStatuses: List<RouteStatus> = emptyList(),
-    val fuelAlerts: List<FuelAlert> = emptyList(),
-    val playerLevel: Int = 1,
-    val playerXp: Int = 0,
-    val nextLevelXp: Int = 1000,
-    val playerBalance: Int = 0,
-    val todayRevenue: Int = 0,
-    val todayPassengers: Int = 0,
-    val todayCargo: Int = 0,
-    val todayOnTimeRate: Float = 0f,
-    val selectedRouteId: String? = null,
-    val selectedVehicleId: Int? = null
-)
-
-data class CategoryProgress(
-    val category: VehicleCategory,
-    val owned: Int,
-    val total: Int
-) {
-    val progress: Float = if (total > 0) owned.toFloat() / total else 0f
-}
-
-data class RouteStatus(
-    val routeId: String,
-    val name: String,
-    val status: String
-)
-
-data class FuelAlert(
-    val vehicleId: Int,
-    val fuelPct: Float
-)

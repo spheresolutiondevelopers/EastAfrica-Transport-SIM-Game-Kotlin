@@ -1,11 +1,16 @@
 package com.transportsim.domain.models
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class Route(
-    val routeId: String,                 // "KE-001"
+    val id: String,
     val name: String,
+    val description: String,
+    val terrainType: TerrainType,
     val distanceKm: Double,
     val durationMin: Int,
-    val terrainType: TerrainType,
     val originLat: Double,
     val originLng: Double,
     val originElev: Double,
@@ -16,12 +21,15 @@ data class Route(
     val originWorldZ: Double,
     val maxSpeedZoneKph: Int,
     val unlockLevel: Int,
+    val isDlc: Boolean,
+    val isTraining: Boolean,
     val revenuePerDayKsh: Int,
     val minVehicleClass: Int,
     val terrainTags: List<String>,
-    val isDlc: Boolean
+    val waypoints: List<RouteWaypoint>
 )
 
+@Serializable
 enum class TerrainType {
     URBAN, HIGHWAY, EXPRESSWAY, RURAL, COASTAL
 }

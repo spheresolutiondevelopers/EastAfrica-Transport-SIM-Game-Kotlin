@@ -10,7 +10,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.transportsim.app.ui.theme.*
 
 @Composable
@@ -21,10 +23,10 @@ fun KeyHints(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        KeyHint("W / ▲", "Accelerate")
-        KeyHint("SPACE", "Brake")
-        KeyHint("A / D", "Lane Change")
-        KeyHint("H", "Horn · P", "Pause")
+        KeyHint(key1 = "W / ▲", action = "Accelerate")
+        KeyHint(key1 = "SPACE", action = "Brake")
+        KeyHint(key1 = "A / D", action = "Lane Change")
+        KeyHint(key1 = "H", key2 = "P", action = "Horn · Pause")
     }
 }
 

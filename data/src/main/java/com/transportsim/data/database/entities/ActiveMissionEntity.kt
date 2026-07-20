@@ -22,5 +22,5 @@ data class ActiveMissionEntity(
     val progressUnit: String,
     val expiresAt: String,
     val assignedVehicleId: Int?,
-    val status: String = "IN_PROGRESS" // IN_PROGRESS, COMPLETED, FAILED
+    var status: String = "IN_PROGRESS" // IN_PROGRESS, COMPLETED, FAILED
 )

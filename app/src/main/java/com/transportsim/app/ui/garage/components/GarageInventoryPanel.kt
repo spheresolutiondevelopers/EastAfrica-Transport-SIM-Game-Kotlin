@@ -8,6 +8,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.transportsim.app.ui.garage.InventoryItem
@@ -126,7 +127,7 @@ fun LiveryItem(
                 MaterialTheme.colorScheme.surface
         ),
         border = if (!livery.isLocked)
-            androidx.compose.foundation.BorderStroke(1.dp, Color(livery.color).copy(alpha = 0.5f))
+            androidx.compose.foundation.BorderStroke(1.dp, Color(android.graphics.Color.parseColor(livery.color)).copy(alpha = 0.5f))
         else
             androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
     ) {

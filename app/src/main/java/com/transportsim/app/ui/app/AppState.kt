@@ -23,6 +23,7 @@ class AppState(
     val currentRoute: String?
         @Composable get() = currentDestination?.route
     
+    @Composable
     fun shouldShowBottomBar(): Boolean {
         return currentDestination?.route !in listOf(
             Destinations.SIMULATION,

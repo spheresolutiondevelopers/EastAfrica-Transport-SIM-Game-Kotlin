@@ -6,6 +6,7 @@ import com.transportsim.domain.models.TerrainChunk
 import com.transportsim.domain.repositories.TerrainRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 import javax.inject.Singleton

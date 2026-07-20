@@ -1,9 +1,11 @@
 package com.transportsim.data.security
 
 import android.content.Context
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import io.github.osipxd.datastore.preferences.encrypted.encryptedPreferencesDataStore
+import io.github.osipxd.security.crypto.encryptedPreferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -29,6 +31,30 @@ class EncryptedPrefs @Inject constructor(
         return context.dataStore.data
             .map { prefs -> prefs[stringPreferencesKey(key)] ?: defaultValue }
             .first()
+    }
+
+    suspend fun putFloat(key: String, value: Float) {
+        context.dataStore.edit { prefs ->
+            prefs[floatPreferencesKey(key)] = value
+        }
+    }
+
+    suspend fun getFloat(key: String, defaultValue: Float): Float {
+        return context.dataStore.data.map { prefs ->
+            prefs[floatPreferencesKey(key)] ?: defaultValue
+        }.first()
+    }
+
+    suspend fun putBoolean(key: String, value: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[booleanPreferencesKey(key)] = value
+        }
+    }
+
+    suspend fun getBoolean(key: String, defaultValue: Boolean): Boolean {
+        return context.dataStore.data.map { prefs ->
+            prefs[booleanPreferencesKey(key)] ?: defaultValue
+        }.first()
     }
 
     fun observeString(key: String, defaultValue: String = ""): Flow<String> {

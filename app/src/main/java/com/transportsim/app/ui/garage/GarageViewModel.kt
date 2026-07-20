@@ -19,57 +19,60 @@ class GarageViewModel @Inject constructor(
     private val economyRepository: EconomyRepository,
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-    
+
     private val _uiState = MutableStateFlow(GarageUiState())
     val uiState: StateFlow<GarageUiState> = _uiState.asStateFlow()
-    
+
     private var selectedVehicleId: Int? = null
-    
+
     init {
         loadGarageData()
     }
-    
+
     private fun loadGarageData() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            
-            // Get all vehicles
+
+            // Ensure default vehicle exists (seeding logic)
+            val defaultVehicle = playerRepository.ensureDefaultVehicle()
             val vehicles = playerRepository.getPlayerVehicles()
-            val ownedVehicles = vehicles.filter { it.status != VehicleStatus.GARAGE }
             
-            // Select first vehicle if none selected
-            if (selectedVehicleId == null && ownedVehicles.isNotEmpty()) {
-                selectedVehicleId = ownedVehicles.first().vehicleId
+            val selectedVehicle = vehicles.find { it.vehicleId == selectedVehicleId }
+            val selectedVehicleSpec = if (selectedVehicle != null) {
+                catalogRepository.getVehicleSpec(selectedVehicle.typeId)
+            } else {
+                null
             }
-            
+
             // Get upgrades for selected vehicle
             val upgrades = if (selectedVehicleId != null) {
                 getUpgradesForVehicle(selectedVehicleId!!)
             } else {
                 emptyList()
             }
-            
-            // Get inventory
+
+            // Get inventory (mock data for now)
             val inventory = listOf(
                 InventoryItem("Engine Parts", "🔩", 3),
                 InventoryItem("Tyres", "🛞", 8),
                 InventoryItem("Battery", "🔋", 2),
                 InventoryItem("Oil Filter", "🛢", 0)
             )
-            
-            // Get liveries
+
+            // Get liveries (mock data for now)
             val liveries = listOf(
                 Livery("Classic", "#003366"),
                 Livery("Safari", "#1a5c00"),
                 Livery("Kenya", "#5c0000"),
                 Livery("🔒 Locked", "#333333", isLocked = true)
             )
-            
+
             _uiState.update { state ->
                 state.copy(
-                    vehicles = ownedVehicles,
+                    vehicles = vehicles,
                     selectedVehicleId = selectedVehicleId,
-                    selectedVehicle = ownedVehicles.find { it.vehicleId == selectedVehicleId },
+                    selectedVehicle = selectedVehicle,
+                    selectedVehicleSpec = selectedVehicleSpec,
                     upgrades = upgrades,
                     inventory = inventory,
                     liveries = liveries,
@@ -78,142 +81,64 @@ class GarageViewModel @Inject constructor(
             }
         }
     }
-    
-    private suspend fun getUpgradesForVehicle(vehicleId: Int): List<UpgradeModule> {
-        // In a real implementation, this would fetch upgrades from a repository
-        // For now, return mock data
-        return listOf(
-            UpgradeModule(
-                upgradeId = "engine_boost",
-                displayName = "Engine Boost",
-                description = "Increases max speed by +5 km/h and acceleration rate by 15% per level.",
-                icon = "⚡",
-                currentLevel = 4,
-                maxLevel = 8,
-                cost = 3200,
-                progress = 0.5f
-            ),
-            UpgradeModule(
-                upgradeId = "seat_capacity",
-                displayName = "Seat Capacity",
-                description = "Add +4 passenger seats per level. Max capacity increases revenue potential.",
-                icon = "🪑",
-                currentLevel = 3,
-                maxLevel = 6,
-                cost = 2100,
-                progress = 0.5f
-            ),
-            UpgradeModule(
-                upgradeId = "fuel_efficiency",
-                displayName = "Fuel Efficiency",
-                description = "Reduces fuel consumption by 8% per level. Critical for long rural routes.",
-                icon = "⛽",
-                currentLevel = 5,
-                maxLevel = 8,
-                cost = 1800,
-                progress = 0.625f
-            ),
-            UpgradeModule(
-                upgradeId = "suspension",
-                displayName = "Suspension",
-                description = "Improves ride comfort and reduces vehicle wear on rural roads.",
-                icon = "🛡",
-                currentLevel = 6,
-                maxLevel = 6,
-                cost = 0,
-                progress = 1f,
-                isMaxed = true
-            ),
-            UpgradeModule(
-                upgradeId = "gps_nav",
-                displayName = "GPS Navigation",
-                description = "Improves pathfinding accuracy and reduces wrong-turn penalties.",
-                icon = "📡",
-                currentLevel = 2,
-                maxLevel = 5,
-                cost = 2600,
-                progress = 0.4f
-            ),
-            UpgradeModule(
-                upgradeId = "pa_system",
-                displayName = "PA System",
-                description = "Improves passenger satisfaction score. Higher satisfaction = increased tips.",
-                icon = "🔊",
-                currentLevel = 1,
-                maxLevel = 4,
-                cost = 900,
-                progress = 0.25f
-            )
-        )
+
+    private suspend fun getUpgradesForVehicle(vehicleId: Int): List<UpgradeWithLevel> {
+        val definitions = catalogRepository.getUpgradeDefinitions()
+        val vehicleUpgrades = playerRepository.getUpgradesForVehicle(vehicleId)
+        val upgradeMap = vehicleUpgrades.associateBy { it.upgradeId }
+
+        return definitions.map { def ->
+            val level = upgradeMap[def.upgradeId]?.currentLevel ?: 0
+            UpgradeWithLevel(def, level)
+        }
     }
-    
+
     fun selectVehicle(vehicleId: Int) {
         selectedVehicleId = vehicleId
-        viewModelScope.launch {
-            val vehicles = playerRepository.getPlayerVehicles()
-            val selected = vehicles.find { it.vehicleId == vehicleId }
-            val upgrades = getUpgradesForVehicle(vehicleId)
-            
-            _uiState.update { state ->
-                state.copy(
-                    selectedVehicleId = vehicleId,
-                    selectedVehicle = selected,
-                    upgrades = upgrades
-                )
-            }
-        }
+        loadGarageData()
     }
-    
+
     fun upgradeModule(upgradeId: String) {
         viewModelScope.launch {
-            try {
-                // In a real implementation, this would call an UpgradeVehiclePartUseCase
-                // For now, just update the local state
-                val upgrades = _uiState.value.upgrades.map { upgrade ->
-                    if (upgrade.upgradeId == upgradeId && !upgrade.isMaxed) {
-                        val newLevel = upgrade.currentLevel + 1
-                        val isMaxed = newLevel >= upgrade.maxLevel
-                        upgrade.copy(
-                            currentLevel = newLevel,
-                            progress = newLevel.toFloat() / upgrade.maxLevel,
-                            isMaxed = isMaxed
-                        )
-                    } else {
-                        upgrade
-                    }
-                }
-                _uiState.update { state ->
-                    state.copy(upgrades = upgrades)
-                }
-                
-                // Show success notification
-            } catch (e: Exception) {
-                // Handle error
+            val vehicleId = _uiState.value.selectedVehicleId ?: return@launch
+
+            val upgrades = _uiState.value.upgrades
+            val upgrade = upgrades.find { it.definition.upgradeId == upgradeId } ?: return@launch
+
+            if (upgrade.isMaxed) return@launch
+
+            val cost = upgrade.nextCost
+            val balance = economyRepository.getBalance()
+            if (balance < cost) {
+                // Handle insufficient balance error (e.g., show Toast via UI event)
+                return@launch
+            }
+
+            // Deduct balance and apply upgrade
+            val result = playerRepository.applyUpgrade(vehicleId, upgradeId)
+            if (result.isSuccess) {
+                economyRepository.addTransaction(-cost, "UPGRADE", "${upgrade.definition.displayName} Lv.${upgrade.currentLevel + 1}")
+                loadGarageData() // Refresh UI
             }
         }
     }
-    
+
     fun editLivery() {
         // Navigate to livery editor
     }
-    
+
     fun fullService() {
         viewModelScope.launch {
-            try {
-                val vehicleId = _uiState.value.selectedVehicleId
-                if (vehicleId != null) {
-                    val vehicle = playerRepository.getPlayerVehicle(vehicleId)
-                    val updated = vehicle.copy(
-                        conditionPct = 100f,
-                        engineHealthPct = 100f,
-                        tyreConditionPct = 100f,
-                        lastMaintainedAt = System.currentTimeMillis().toString()
-                    )
-                    playerRepository.updateVehicle(updated)
-                    loadGarageData()
-                }
-            } catch (e: Exception) {
-                // Handle error
+            val vehicleId = _uiState.value.selectedVehicleId ?: return@launch
+            
+            val cost = 2000
+            val balance = economyRepository.getBalance()
+            if (balance < cost) return@launch
+
+            val result = playerRepository.fullServiceVehicle(vehicleId)
+            if (result.isSuccess) {
+                economyRepository.addTransaction(-cost, "MAINTENANCE", "Full Service")
+                loadGarageData()
             }
         }
     }
@@ -223,32 +148,12 @@ data class GarageUiState(
     val vehicles: List<Vehicle> = emptyList(),
     val selectedVehicleId: Int? = null,
     val selectedVehicle: Vehicle? = null,
-    val upgrades: List<UpgradeModule> = emptyList(),
+    val selectedVehicleSpec: VehicleCatalogEntry? = null,
+    val upgrades: List<UpgradeWithLevel> = emptyList(),
     val inventory: List<InventoryItem> = emptyList(),
     val liveries: List<Livery> = emptyList(),
     val isLoading: Boolean = false
 )
 
-data class UpgradeModule(
-    val upgradeId: String,
-    val displayName: String,
-    val description: String,
-    val icon: String,
-    val currentLevel: Int,
-    val maxLevel: Int,
-    val cost: Int,
-    val progress: Float,
-    val isMaxed: Boolean = false
-)
-
-data class InventoryItem(
-    val name: String,
-    val icon: String,
-    val quantity: Int
-)
-
-data class Livery(
-    val name: String,
-    val color: String,
-    val isLocked: Boolean = false
-)
+data class InventoryItem(val name: String, val icon: String, val quantity: Int)
+data class Livery(val name: String, val color: String, val isLocked: Boolean = false)

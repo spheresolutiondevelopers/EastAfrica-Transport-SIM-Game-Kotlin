@@ -1,7 +1,9 @@
 package com.transportsim.app.ui.simulation.components
 
 import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -19,7 +21,7 @@ fun CollisionFlash(
         Box(
             modifier = modifier
                 .fillMaxSize()
-                .background(Red.copy(alpha = 0.45f))
+                .background(Color.Red.copy(alpha = 0.45f))
         )
     }
 }

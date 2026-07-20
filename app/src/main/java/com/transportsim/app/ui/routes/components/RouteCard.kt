@@ -10,18 +10,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.transportsim.app.ui.theme.*
 import com.transportsim.domain.models.Route
+import com.transportsim.domain.models.RouteStats
 import com.transportsim.domain.models.TerrainType
 
 @Composable
 fun RouteCard(
     route: Route,
+    stats: RouteStats? = null,
     isSelected: Boolean = false,
     isLocked: Boolean = false,
     onClick: () -> Unit,
     onAssign: () -> Unit,
     onUnlock: () -> Unit,
+    onStart: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val terrainColor = when (route.terrainType) {
@@ -47,64 +51,167 @@ fun RouteCard(
         ),
         shape = RoundedCornerShape(10.dp)
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .padding(16.dp)
         ) {
-            Column(
-                modifier = Modifier.weight(1f)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                // Header
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                Column(
+                    modifier = Modifier.weight(1f)
                 ) {
-                    Text(
-                        text = route.routeId,
-                        style = MaterialTheme.typography.labelMedium,
-                        color = terrainColor,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = "${route.distanceKm} km",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                
-                // Route name
-                Text(
-                    text = route.name,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = if (isLocked) 
-                        MaterialTheme.colorScheme.onSurfaceVariant 
-                    else 
-                        MaterialTheme.colorScheme.onSurface
-                )
-                
-                // Terrain tags
-                Row(
-                    modifier = Modifier.padding(top = 4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    TerrainTag(
-                        label = route.terrainType.name,
-                        color = terrainColor
-                    )
-                    route.terrainTags.take(2).forEach { tag ->
-                        TerrainTag(
-                            label = tag,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                    // Header
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = route.id,
+                                style = MaterialTheme.typography.labelMedium,
+                                color = terrainColor,
+                                fontWeight = FontWeight.Bold
+                            )
+                            if (route.isDlc) {
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Surface(
+                                    color = Gold.copy(alpha = 0.15f),
+                                    shape = RoundedCornerShape(4.dp),
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, Gold)
+                                ) {
+                                    Text(
+                                        text = "💎 DLC",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Gold,
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                    )
+                                }
+                            }
+                        }
+                        Text(
+                            text = "${route.distanceKm} km",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                    }
+                    
+                    // Route name
+                    Text(
+                        text = route.name,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = if (isLocked) 
+                            MaterialTheme.colorScheme.onSurfaceVariant 
+                        else 
+                            MaterialTheme.colorScheme.onSurface
+                    )
+                    
+                    // Terrain tags
+                    Row(
+                        modifier = Modifier.padding(top = 4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        TerrainTag(
+                            label = route.terrainType.name,
+                            color = terrainColor
+                        )
+                        route.terrainTags.take(2).forEach { tag ->
+                            TerrainTag(
+                                label = tag,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                            )
+                        }
                     }
                 }
                 
-                // Stats
+                // Action button
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    when {
+                        isLocked -> {
+                            Button(
+                                onClick = onUnlock,
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Gold.copy(alpha = 0.2f),
+                                    contentColor = Gold
+                                ),
+                                shape = RoundedCornerShape(5.dp)
+                            ) {
+                                Text(
+                                    text = "🔒 Unlock (Lv.${route.unlockLevel})",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                        stats != null && stats.hasBeenPlayed -> {
+                            Button(
+                                onClick = onStart,
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Green,
+                                    contentColor = Color.White
+                                ),
+                                shape = RoundedCornerShape(5.dp)
+                            ) {
+                                Text(
+                                    text = "▶ Play Again",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                        else -> {
+                            Button(
+                                onClick = onStart,
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Cyan,
+                                    contentColor = Color.Black
+                                ),
+                                shape = RoundedCornerShape(5.dp)
+                            ) {
+                                Text(
+                                    text = "▶ Start Route",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Description
+            Text(
+                text = route.description,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 8.dp),
+                maxLines = 2
+            )
+
+            // Player stats
+            if (stats != null && stats.hasBeenPlayed) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    RouteStatChip("🏆", "${stats.bestScore} pts")
+                    RouteStatChip("⭐", "${stats.stars} stars")
+                    RouteStatChip("⏱", stats.formattedFastestTime)
+                    RouteStatChip("🚀", "${stats.timesCompleted}x")
+                }
+            } else if (!isLocked) {
+                // Revenue info if not played yet
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -112,69 +219,41 @@ fun RouteCard(
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     RouteStat(
-                        label = "Assigned",
-                        value = "${(1..3).random()} vehicles"
-                    )
-                    RouteStat(
-                        label = "Revenue",
-                        value = "KSH ${(2000..8000).random()}/day"
+                        label = "Potential Revenue",
+                        value = "KSH ${route.revenuePerDayKsh}/day"
                     )
                 }
             }
-            
-            // Action button
-            Column(
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                if (isLocked) {
-                    Button(
-                        onClick = onUnlock,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Gold.copy(alpha = 0.2f),
-                            contentColor = Gold
-                        ),
-                        shape = RoundedCornerShape(5.dp)
-                    ) {
-                        Text(
-                            text = "🔒 Unlock",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                } else {
-                    Button(
-                        onClick = onAssign,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Green.copy(alpha = 0.2f),
-                            contentColor = Green
-                        ),
-                        shape = RoundedCornerShape(5.dp)
-                    ) {
-                        Text(
-                            text = "+ Assign",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
-                
-                if (isSelected) {
-                    Surface(
-                        color = Green.copy(alpha = 0.2f),
-                        shape = RoundedCornerShape(10.dp),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, Green)
-                    ) {
-                        Text(
-                            text = "ACTIVE",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = Green,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
-                        )
-                    }
-                }
-            }
+        }
+    }
+}
+
+@Composable
+fun RouteStatChip(
+    icon: String,
+    value: String,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(4.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        border = androidx.compose.foundation.BorderStroke(
+            0.5.dp, 
+            MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+        )
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(text = icon, fontSize = 10.sp)
+            Text(
+                text = value,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurface
+            )
         }
     }
 }

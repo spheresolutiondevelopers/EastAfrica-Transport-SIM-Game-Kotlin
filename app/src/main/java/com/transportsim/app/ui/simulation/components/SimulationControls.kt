@@ -5,6 +5,7 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -36,7 +37,7 @@ fun SimulationControls(
             onRelease = onRelease,
             color = Green,
             modifier = Modifier
-                .align(Alignment.CenterRight)
+                .align(Alignment.CenterEnd)
                 .padding(end = 18.dp)
                 .size(80.dp, 120.dp)
         )
@@ -48,7 +49,7 @@ fun SimulationControls(
             onRelease = onRelease,
             color = Red,
             modifier = Modifier
-                .align(Alignment.CenterLeft)
+                .align(Alignment.CenterStart)
                 .padding(start = 18.dp)
                 .size(80.dp, 120.dp)
         )
@@ -117,7 +118,8 @@ fun ControlButton(
                     onDragCancel = {
                         isPressed = false
                         onRelease()
-                    }
+                    },
+                    onDrag = { _, _ -> }
                 )
             },
         color = if (isPressed) {

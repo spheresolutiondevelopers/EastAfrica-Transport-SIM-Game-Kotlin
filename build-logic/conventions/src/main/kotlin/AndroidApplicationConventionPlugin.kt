@@ -42,6 +42,7 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
             }
 
             extensions.configure<KotlinAndroidProjectExtension> {
+                jvmToolchain(21)
                 compilerOptions {
                     jvmTarget.set(JvmTarget.JVM_21)
                 }
@@ -56,6 +57,7 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
                 add("implementation", libs.findLibrary("androidx-compose-material-icons").get())
                 add("implementation", libs.findLibrary("androidx-compose-foundation").get())
                 add("implementation", libs.findLibrary("androidx-compose-runtime").get())
+                add("implementation", libs.findLibrary("androidx-compose-ui-google-fonts").get())
                 add("implementation", libs.findLibrary("androidx-lifecycle-compose").get())
                 add("implementation", libs.findLibrary("androidx-lifecycle-viewmodel").get())
                 add("implementation", libs.findLibrary("androidx-activity-compose").get())

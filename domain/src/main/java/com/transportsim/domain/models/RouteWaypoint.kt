@@ -1,11 +1,10 @@
 package com.transportsim.domain.models
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class RouteWaypoint(
     val name: String,
-    val distanceFromOriginKm: Double,
-    val lat: Double,
-    val lng: Double,
-    val worldX: Double,
-    val worldZ: Double,
+    val distanceKm: Double,
     val isTerminal: Boolean = false
 )

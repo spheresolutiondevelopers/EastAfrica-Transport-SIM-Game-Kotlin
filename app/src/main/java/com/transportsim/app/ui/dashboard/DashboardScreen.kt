@@ -2,28 +2,18 @@ package com.transportsim.app.ui.dashboard
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.transportsim.app.R
-import com.transportsim.app.ui.components.*
 import com.transportsim.app.ui.dashboard.components.*
 import com.transportsim.app.ui.theme.*
+import com.transportsim.domain.models.VehicleCategory
+import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
     onVehicleSelected: (Int) -> Unit,
@@ -32,223 +22,119 @@ fun DashboardScreen(
     onStartSimulation: (String, Int) -> Unit,
     onStartTraining: () -> Unit,
     onNavigateToFleet: () -> Unit,
+    onNavigateToRoutes: () -> Unit,
+    onNavigateToMissions: () -> Unit,
+    onNavigateToGarage: () -> Unit,
+    onNavigateToSettings: () -> Unit,
     viewModel: DashboardViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val isMuted by viewModel.isMuted.collectAsStateWithLifecycle()
+    var selectedCategory by remember { mutableStateOf<VehicleCategory?>(VehicleCategory.BUS) }
     
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "TransportSim",
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = Cyan
-                    )
-                },
-                actions = {
-                    IconButton(onClick = { /* Navigate to notifications */ }) {
-                        Icon(
-                            imageVector = ImageVector.vectorResource(R.drawable.ic_notification),
-                            contentDescription = "Notifications"
-                        )
-                    }
-                    IconButton(onClick = { /* Navigate to settings */ }) {
-                        Icon(
-                            imageVector = ImageVector.vectorResource(R.drawable.ic_settings),
-                            contentDescription = "Settings"
-                        )
+    val configuration = LocalConfiguration.current
+    val isSmallHeight = configuration.screenHeightDp < 520
+    val sidebarWidth = if (isSmallHeight) 190.dp else 220.dp
+    
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            MobileNavDrawer(
+                currentScreen = "dashboard",
+                onScreenSelected = { screen ->
+                    when (screen) {
+                        "fleet" -> onNavigateToFleet()
+                        "routes" -> onNavigateToRoutes()
+                        "missions" -> onNavigateToMissions()
+                        "garage" -> onNavigateToGarage()
+                        "settings" -> onNavigateToSettings()
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    scrolledContainerColor = MaterialTheme.colorScheme.surface
-                )
+                balance = uiState.playerBalance,
+                level = uiState.playerLevel,
+                xp = 3450, // Example XP value matching design
+                onClose = {
+                    scope.launch { drawerState.close() }
+                }
             )
-        }
-    ) { paddingValues ->
-        LazyColumn(
+        },
+        gesturesEnabled = isSmallHeight
+    ) {
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .background(MaterialTheme.colorScheme.background),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .background(BgDeep)
         ) {
-            // Vehicle Categories Grid
-            item {
-                CategoryGrid(
-                    categories = uiState.categories,
-                    onCategorySelected = { category ->
-                        onNavigateToFleet()
+            // High-Fidelity HUD
+            DashboardHUD(
+                balance = uiState.playerBalance,
+                fleetSize = 12, // From design
+                activeSize = 9,  // From design
+                level = uiState.playerLevel,
+                currentScreen = "dashboard",
+                onScreenSelected = { screen ->
+                    when (screen) {
+                        "fleet" -> onNavigateToFleet()
+                        "routes" -> onNavigateToRoutes()
+                        "missions" -> onNavigateToMissions()
+                        "garage" -> onNavigateToGarage()
+                        "settings" -> onNavigateToSettings()
                     }
+                },
+                onMenuClick = {
+                    scope.launch { drawerState.open() }
+                },
+                modifier = Modifier.height(if (isSmallHeight) 46.dp else 58.dp)
+            )
+
+            // Main 3-Column Content
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+            ) {
+                // LEFT: Vehicle Category Browser
+                DashLeft(
+                    categories = uiState.categories,
+                    selectedCategory = selectedCategory,
+                    onCategorySelected = { category ->
+                        selectedCategory = category
+                    },
+                    modifier = Modifier.width(sidebarWidth)
                 )
-            }
-            
-            // Level Progress
-            item {
-                LevelProgressCard(
-                    currentLevel = uiState.playerLevel,
-                    currentXp = uiState.playerXp,
-                    nextLevelXp = uiState.nextLevelXp,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-            
-            // Active Missions Preview
-            if (uiState.activeMissions.isNotEmpty()) {
-                item {
-                    MissionsPreview(
-                        missions = uiState.activeMissions,
-                        onMissionSelected = onMissionSelected
-                    )
-                }
-            }
-            
-            // Map with overlays (Turntable + Detail Panel)
-            item {
-                DashboardMapWithOverlays(
+
+                // CENTER: Map + Overlays
+                DashCenter(
                     routeId = uiState.selectedRouteId,
-                    vehicles = uiState.mapVehicles,
-                    selectedVehicle = uiState.vehicles.firstOrNull(),
-                    isOwned = true,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(280.dp)
+                    mapVehicles = uiState.mapVehicles,
+                    selectedVehicle = uiState.vehicles.find { 
+                        it.typeId.startsWith(selectedCategory?.name?.lowercase() ?: "") 
+                    } ?: uiState.vehicles.firstOrNull(),
+                    isMuted = isMuted,
+                    onToggleAudio = { viewModel.toggleMute() },
+                    onStartSimulation = {
+                        if (uiState.selectedRouteId != null && uiState.selectedVehicleId != null) {
+                            onStartSimulation(uiState.selectedRouteId!!, uiState.selectedVehicleId!!)
+                        }
+                    },
+                    onStartTraining = onStartTraining,
+                    modifier = Modifier.weight(1f)
                 )
-            }
-            
-            // Action Buttons (START SIMULATION + TRAINING)
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    StartSimulationButton(
-                        onClick = {
-                            if (uiState.selectedRouteId != null && uiState.selectedVehicleId != null) {
-                                onStartSimulation(uiState.selectedRouteId!!, uiState.selectedVehicleId!!)
-                            }
-                        },
-                        isEnabled = uiState.selectedRouteId != null && uiState.selectedVehicleId != null,
-                        modifier = Modifier.weight(1f)
-                    )
-                    
-                    // ✅ TRAINING BUTTON – explicitly included here
-                    TrainingButton(
-                        onClick = onStartTraining,
-                        modifier = Modifier.weight(0.6f)
-                    )
-                }
-            }
-            
-            // Quick Stats
-            item {
-                QuickStatsRow(
+
+                // RIGHT: Performance & Status
+                DashRight(
                     revenue = uiState.todayRevenue,
                     passengers = uiState.todayPassengers,
                     cargo = uiState.todayCargo,
                     onTimeRate = uiState.todayOnTimeRate,
-                    modifier = Modifier.fillMaxWidth()
+                    routeStatuses = uiState.routeStatuses,
+                    fuelAlerts = uiState.fuelAlerts,
+                    modifier = Modifier.width(sidebarWidth)
                 )
             }
-            
-            // Route Status
-            item {
-                RouteStatusCard(
-                    routes = uiState.routeStatuses,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-            
-            // Fuel Alert
-            item {
-                FuelAlertCard(
-                    alerts = uiState.fuelAlerts,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun DashboardMapWithOverlays(
-    routeId: String?,
-    vehicles: List<MapVehicle>,
-    selectedVehicle: Vehicle?,
-    isOwned: Boolean,
-    modifier: Modifier = Modifier
-) {
-    Box(modifier = modifier) {
-        // The map itself
-        MapView(
-            routeId = routeId,
-            vehicles = vehicles,
-            modifier = Modifier.fillMaxSize()
-        )
-        
-        // Turntable overlay (top-left)
-        VehicleTurntable(
-            vehicleId = selectedVehicle?.vehicleId,
-            isOwned = isOwned,
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(8.dp)
-                .size(200.dp, 150.dp)
-        )
-        
-        // Detail panel (to the right of turntable)
-        if (selectedVehicle != null) {
-            VehicleDetailPanel(
-                vehicleName = selectedVehicle.displayName ?: selectedVehicle.typeId,
-                maxSpeed = "80 km/h", // In real app, fetch from catalog
-                power = "6.2L Diesel",
-                capacity = "48 pax",
-                isOwned = isOwned,
-                price = if (!isOwned) "KSH 850,000" else null,
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .padding(start = 216.dp, top = 8.dp)
-            )
-        }
-        
-        // Theme toggle button (top-right)
-        ThemeToggleButton(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(8.dp)
-        )
-    }
-}
-
-@Composable
-fun ThemeToggleButton(modifier: Modifier = Modifier) {
-    var isLight by remember { mutableStateOf(false) }
-    Button(
-        onClick = {
-            isLight = !isLight
-            // Toggle theme via LocalTheme or system
-        },
-        modifier = modifier,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f)
-        ),
-        shape = RoundedCornerShape(20.dp)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Text(
-                text = if (isLight) "☀" else "🌙",
-                fontSize = 14.sp
-            )
-            Text(
-                text = if (isLight) "LIGHT" else "DARK",
-                style = MaterialTheme.typography.labelSmall,
-                color = Cyan
-            )
         }
     }
 }

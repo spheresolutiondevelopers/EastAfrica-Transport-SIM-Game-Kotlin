@@ -1,13 +1,10 @@
 package com.transportsim.app.ui.training.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -15,6 +12,9 @@ import com.transportsim.app.ui.theme.*
 
 @Composable
 fun TrainingHeroCard(
+    playerLevel: Int,
+    completedCount: Int,
+    totalCount: Int,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -45,33 +45,28 @@ fun TrainingHeroCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 4.dp)
             )
+            
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                TrainingHeroStat("🎯", "6 Scenarios")
-                TrainingHeroStat("⭐", "3 Difficulties")
-                TrainingHeroStat("🏆", "+XP Rewards")
+                TrainingHeroStat("👤", "Level $playerLevel")
+                TrainingHeroStat("🎯", "$completedCount/$totalCount Complete")
+                TrainingHeroStat("🏆", "${totalCount - completedCount} Remaining")
             }
         }
     }
 }
 
 @Composable
-fun TrainingHeroStat(
-    icon: String,
-    label: String
-) {
+fun TrainingHeroStat(icon: String, label: String) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = icon,
-            style = MaterialTheme.typography.labelMedium
-        )
+        Text(icon, style = MaterialTheme.typography.labelMedium)
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall,

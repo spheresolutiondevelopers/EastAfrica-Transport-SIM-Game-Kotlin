@@ -7,5 +7,5 @@ class GetRouteWaypointsUseCase(
     private val routeRepository: RouteRepository
 ) {
     suspend operator fun invoke(routeId: String): List<RouteWaypoint> =
-        routeRepository.getRouteWaypoints(routeId)
+        routeRepository.getRoute(routeId)?.waypoints ?: emptyList()
 }

@@ -3,6 +3,8 @@ package com.transportsim.app.ui.settings
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -35,7 +37,7 @@ fun SettingsScreen(
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
-                            imageVector = androidx.compose.material.icons.Icons.Default.ArrowBack,
+                            imageVector = Icons.Default.ArrowBack,
                             contentDescription = "Back"
                         )
                     }
@@ -120,6 +122,40 @@ fun SettingsScreen(
                                 onValueChange = { viewModel.setMasterVolume(it) },
                                 valueRange = 0f..100f,
                                 steps = 10
+                            )
+                        }
+                    )
+                    SettingsRow(
+                        label = "Music Volume",
+                        description = "Background theme music",
+                        control = {
+                            SettingsSlider(
+                                value = uiState.musicVolume,
+                                onValueChange = { viewModel.setMusicVolume(it) },
+                                valueRange = 0f..100f,
+                                steps = 10
+                            )
+                        }
+                    )
+                    SettingsRow(
+                        label = "Sound Effects",
+                        description = "UI sounds and notifications",
+                        control = {
+                            SettingsSlider(
+                                value = uiState.soundVolume,
+                                onValueChange = { viewModel.setSoundVolume(it) },
+                                valueRange = 0f..100f,
+                                steps = 10
+                            )
+                        }
+                    )
+                    SettingsRow(
+                        label = "Audio Enabled",
+                        description = "Mute all audio",
+                        control = {
+                            SettingsToggle(
+                                checked = !uiState.isAudioMuted,
+                                onCheckedChange = { viewModel.setAudioEnabled(it) }
                             )
                         }
                     )

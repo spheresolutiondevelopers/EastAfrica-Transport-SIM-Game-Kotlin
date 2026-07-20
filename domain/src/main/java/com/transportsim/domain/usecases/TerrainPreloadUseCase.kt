@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 
+@OptIn(FlowPreview::class)
 class TerrainPreloadUseCase(
     private val terrainRepository: TerrainRepository,
     private val preloadRadius: Int = 2, // chunks in each direction

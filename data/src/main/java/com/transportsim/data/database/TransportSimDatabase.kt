@@ -7,8 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.transportsim.data.database.dao.*
 import com.transportsim.data.database.entities.*
-import net.sqlcipher.database.SQLiteDatabase
-import net.sqlcipher.database.SupportFactory
+import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 
 @Database(
     entities = [
@@ -24,9 +23,11 @@ import net.sqlcipher.database.SupportFactory
         PartsInventoryEntity::class,
         RouteUnlockStateEntity::class,
         RouteWaypointEntity::class,
-        TerrainChunkMetadataEntity::class
+        TerrainChunkMetadataEntity::class,
+        RouteStatsEntity::class,
+        TrainingProgressEntity::class
     ],
-    version = 1, // Increment this when schema changes, and add a migration
+    version = 3, // Increment this when schema changes, and add a migration
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -45,6 +46,8 @@ abstract class TransportSimDatabase : RoomDatabase() {
     abstract fun routeUnlockStateDao(): RouteUnlockStateDao
     abstract fun routeWaypointDao(): RouteWaypointDao
     abstract fun terrainChunkMetadataDao(): TerrainChunkMetadataDao
+    abstract fun routeStatsDao(): RouteStatsDao
+    abstract fun trainingProgressDao(): TrainingProgressDao
 
     companion object {
         @Volatile
@@ -54,13 +57,14 @@ abstract class TransportSimDatabase : RoomDatabase() {
         private const val PASSPHRASE = "your_secure_passphrase_here" // In production, derive from user pin or biometrics
 
         fun getInstance(context: Context): TransportSimDatabase {
+            System.loadLibrary("sqlcipher")
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     TransportSimDatabase::class.java,
                     DB_NAME
                 )
-                    .openHelperFactory(SupportFactory(SQLiteDatabase.getBytes(PASSPHRASE.toCharArray())))
+                    .openHelperFactory(SupportOpenHelperFactory(PASSPHRASE.toByteArray()))
                     // Add migrations when version > 1
                     // .addMigrations(Migrations.MIGRATION_1_2, Migrations.MIGRATION_2_3)
                     .fallbackToDestructiveMigration() // For dev; remove for production after migrations are solid

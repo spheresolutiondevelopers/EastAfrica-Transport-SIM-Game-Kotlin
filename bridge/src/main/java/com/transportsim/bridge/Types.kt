@@ -11,7 +11,8 @@ object Types {
         return object : ParameterizedType {
             override fun getRawType(): Type = raw
             override fun getOwnerType(): Type? = null
-            override fun getActualTypeArguments(): Array<Type> = typeArguments
+            @Suppress("UNCHECKED_CAST")
+            override fun getActualTypeArguments(): Array<Type> = typeArguments as Array<Type>
             override fun toString(): String = "${raw.name}<${typeArguments.joinToString(",")}>"
         }
     }

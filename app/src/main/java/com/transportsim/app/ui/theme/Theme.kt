@@ -15,27 +15,27 @@ private val DarkColorScheme = darkColorScheme(
     primary = Cyan,
     secondary = Purple,
     tertiary = Gold,
-    background = DarkBackground,
-    surface = DarkSurface,
-    surfaceVariant = DarkCard,
+    background = BgDeep,
+    surface = BgPanel,
+    surfaceVariant = BgCard,
     onPrimary = Color.Black,
     onSecondary = Color.Black,
-    onBackground = TextPrimary,
-    onSurface = TextPrimary,
-    outline = DarkBorder
+    onBackground = TextPri,
+    onSurface = TextPri,
+    outline = Border
 )
 
 private val LightColorScheme = lightColorScheme(
     primary = Cyan,
     secondary = Purple,
     tertiary = Gold,
-    background = LightBackground,
-    surface = LightSurface,
-    surfaceVariant = LightCard,
+    background = LightBgDeep,
+    surface = LightBgPanel,
+    surfaceVariant = LightBgCard,
     onPrimary = Color.Black,
     onSecondary = Color.Black,
-    onBackground = TextPrimary,
-    onSurface = TextPrimary,
+    onBackground = LightTextPri,
+    onSurface = LightTextPri,
     outline = LightBorder
 )
 

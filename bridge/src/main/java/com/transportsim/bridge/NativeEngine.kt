@@ -22,6 +22,101 @@ class NativeEngine @Inject constructor(
         init {
             System.loadLibrary("transportsim_native")
         }
+
+        /**
+         * Initializes the C++ physics engine with vehicle config, road segments, and bus stops.
+         * Returns a session handle that must be passed to all subsequent native calls.
+         */
+        @JvmStatic
+        external fun nativeInitSession(
+            configJson: String,
+            segmentsJson: String,
+            stopsJson: String
+        ): Long
+
+        /**
+         * Steps the physics simulation forward by dt seconds.
+         * Returns true if the session is still active (not complete).
+         */
+        @JvmStatic
+        external fun nativeStepPhysics(sessionHandle: Long, dtSeconds: Float): Boolean
+
+        /**
+         * Gets the current vehicle state from the C++ engine.
+         * Returns a JSON string that we parse on the Kotlin side.
+         */
+        @JvmStatic
+        external fun nativeGetVehicleState(sessionHandle: Long): String
+
+        /**
+         * Gets the current traffic light states.
+         */
+        @JvmStatic
+        external fun nativeGetTrafficLights(sessionHandle: Long): String
+
+        /**
+         * Gets the current simulation metrics.
+         */
+        @JvmStatic
+        external fun nativeGetMetrics(sessionHandle: Long): String
+
+        /**
+         * Sets the vehicle input state.
+         */
+        @JvmStatic
+        external fun nativeSetInput(
+            sessionHandle: Long,
+            throttle: Float,
+            brake: Float,
+            steerAngle: Float,
+            handbrake: Boolean,
+            horn: Boolean
+        )
+
+        /**
+         * Ends the session and returns the final score.
+         */
+        @JvmStatic
+        external fun nativeEndSession(sessionHandle: Long): Int
+
+        @JvmStatic
+        external fun nativeInitRenderer(
+            surface: Any,  // Surface or SurfaceView
+            width: Int,
+            height: Int,
+            assetManager: android.content.res.AssetManager
+        )
+
+        @JvmStatic
+        external fun nativeRenderFrame(sessionHandle: Long): Boolean
+
+        @JvmStatic
+        external fun nativeSetCamera(
+            eyeX: Float, eyeY: Float, eyeZ: Float,
+            targetX: Float, targetY: Float, targetZ: Float
+        )
+
+        @JvmStatic
+        external fun nativeResizeRenderer(width: Int, height: Int)
+
+        @JvmStatic
+        external fun nativeInjectChunk(
+            sessionHandle: Long,
+            chunkX: Int,
+            chunkY: Int,
+            data: ByteArray
+        ): Boolean
+
+        @JvmStatic
+        external fun nativeEvictChunk(sessionHandle: Long, chunkX: Int, chunkY: Int): Boolean
+
+        @JvmStatic
+        external fun nativeGetFriction(
+            sessionHandle: Long,
+            worldX: Float,
+            worldZ: Float,
+            wet: Boolean
+        ): Float
     }
 
     private val moshi = Moshi.Builder()
@@ -35,107 +130,6 @@ class NativeEngine @Inject constructor(
     val metrics: StateFlow<BridgeSimulationMetrics> = _metrics.asStateFlow()
 
     private var sessionHandle: Long = 0L
-
-    // ─── Native methods ──────────────────────────────────────────
-
-    /**
-     * Initializes the C++ physics engine with vehicle config, road segments, and bus stops.
-     * Returns a session handle that must be passed to all subsequent native calls.
-     */
-    @JvmStatic
-    external fun nativeInitSession(
-        configJson: String,
-        segmentsJson: String,
-        stopsJson: String
-    ): Long
-
-    /**
-     * Steps the physics simulation forward by dt seconds.
-     * Returns true if the session is still active (not complete).
-     */
-    @JvmStatic
-    external fun nativeStepPhysics(sessionHandle: Long, dtSeconds: Float): Boolean
-
-    /**
-     * Gets the current vehicle state from the C++ engine.
-     * Returns a JSON string that we parse on the Kotlin side.
-     */
-    @JvmStatic
-    external fun nativeGetVehicleState(sessionHandle: Long): String
-
-    /**
-     * Gets the current traffic light states.
-     */
-    @JvmStatic
-    external fun nativeGetTrafficLights(sessionHandle: Long): String
-
-    /**
-     * Gets the current simulation metrics.
-     */
-    @JvmStatic
-    external fun nativeGetMetrics(sessionHandle: Long): String
-
-    /**
-     * Sets the vehicle input state.
-     */
-    @JvmStatic
-    external fun nativeSetInput(
-        sessionHandle: Long,
-        throttle: Float,
-        brake: Float,
-        steerAngle: Float,
-        handbrake: Boolean,
-        horn: Boolean
-    )
-
-    /**
-     * Ends the session and returns the final score.
-     */
-    @JvmStatic
-    external fun nativeEndSession(sessionHandle: Long): Int
-
-    // ─── Rendering methods ─────────────────────────────────────
-
-    @JvmStatic
-    external fun nativeInitRenderer(
-        surface: Any,  // Surface or SurfaceView
-        width: Int,
-        height: Int,
-        assetManager: android.content.res.AssetManager
-    )
-
-    @JvmStatic
-    external fun nativeRenderFrame(sessionHandle: Long): Boolean
-
-    @JvmStatic
-    external fun nativeSetCamera(
-        eyeX: Float, eyeY: Float, eyeZ: Float,
-        targetX: Float, targetY: Float, targetZ: Float
-    )
-
-    @JvmStatic
-    external fun nativeResizeRenderer(width: Int, height: Int)
-
-    // ─── Terrain methods ──────────────────────────────────────
-
-    @JvmStatic
-    external fun nativeInjectChunk(
-        sessionHandle: Long,
-        chunkX: Int,
-        chunkY: Int,
-        data: ByteArray
-    ): Boolean
-
-    @JvmStatic
-    external fun nativeEvictChunk(sessionHandle: Long, chunkX: Int, chunkY: Int): Boolean
-
-    @JvmStatic
-    external fun nativeGetFriction(
-        sessionHandle: Long,
-        worldX: Float,
-        worldZ: Float,
-        wet: Boolean
-    ): Float
 
     // ─── Helper methods (Kotlin side) ──────────────────────────
 

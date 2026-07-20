@@ -1,7 +1,7 @@
 package com.transportsim.domain.usecases
 
 import com.transportsim.domain.models.EffectType
-import com.transportsim.domain.models.Upgrade
+import com.transportsim.domain.models.UpgradeDefinition
 import com.transportsim.domain.models.VehicleUpgrade
 import com.transportsim.domain.repositories.CatalogRepository
 import com.transportsim.domain.repositories.EconomyRepository
@@ -17,7 +17,6 @@ class UpgradeVehiclePartUseCase(
     suspend operator fun invoke(vehicleId: Int, upgradeId: String): Result<UpgradeResult> {
         return runCatching {
             // 1. Get current vehicle and upgrade definitions
-            val vehicle = playerRepository.getPlayerVehicle(vehicleId)
             val upgradeDef = catalogRepository.getUpgradeDefinition(upgradeId)
             val currentUpgrades = getCurrentUpgradeLevels(vehicleId)
 
@@ -27,55 +26,49 @@ class UpgradeVehiclePartUseCase(
             }
 
             val nextLevel = currentLevel + 1
-            val cost = upgradeDef.costPerLevel * nextLevel
+            val cost = upgradeDef.costPerLevel[currentLevel]
 
             // 2. Check balance
-            val profile = playerRepository.getProfile()
-            if (profile.balanceKsh < cost) {
+            val balance = economyRepository.getBalance()
+            if (balance < cost) {
                 throw IllegalStateException("Insufficient balance. Required: KSH $cost")
             }
 
-            // 3. Deduct balance
-            val updatedProfile = profile.copy(balanceKsh = profile.balanceKsh - cost)
-            playerRepository.updateProfile(updatedProfile)
+            // 3. Apply upgrade to vehicle (Repository handles balance deduction in database)
+            playerRepository.applyUpgrade(vehicleId, upgradeId).getOrThrow()
+            
+            // 4. Record transaction for ledger
             economyRepository.addTransaction(-cost, "UPGRADE", "${upgradeDef.displayName} Lv.$nextLevel")
 
-            // 4. Apply upgrade to vehicle
-            applyUpgrade(vehicleId, upgradeId, nextLevel)
-
             // 5. Return result
+            val newProfile = playerRepository.getProfile()
             UpgradeResult(
                 upgradeId = upgradeId,
                 newLevel = nextLevel,
                 cost = cost,
-                newBalance = updatedProfile.balanceKsh,
+                newBalance = newProfile.balanceKsh,
                 effect = calculateEffect(upgradeDef, nextLevel)
             )
         }
     }
 
     private suspend fun getCurrentUpgradeLevels(vehicleId: Int): Map<String, Int> {
-        // In a real implementation this would come from a dedicated UpgradeRepository
-        // For now we simulate with a simple call to fleet repository if available
-        // Assume we have a method in fleetRepository to get upgrades
-        return emptyMap() // Placeholder
+        return playerRepository.getUpgradesForVehicle(vehicleId).associate { it.upgradeId to it.currentLevel }
     }
 
-    private suspend fun applyUpgrade(vehicleId: Int, upgradeId: String, level: Int) {
-        // In a real implementation we would call UpgradeRepository.saveUpgrade
-        // This is a placeholder
-    }
-
-    private fun calculateEffect(upgrade: Upgrade, level: Int): String {
-        val bonus = upgrade.effectPerLevel * level
+    private fun calculateEffect(upgrade: UpgradeDefinition, level: Int): String {
+        val bonus = if (level > 0) upgrade.effectPerLevel[level - 1] else 0f
         return when (upgrade.effectType) {
             EffectType.SPEED_BOOST -> "+${bonus.toInt()} km/h"
-            EffectType.CAPACITY_BOOST -> "+${bonus.toInt()} seats"
-            EffectType.FUEL_EFFICIENCY -> "-${(bonus * 100).toInt()}% consumption"
-            EffectType.BRAKING_BOOST -> "+${bonus.toInt()}% braking force"
-            EffectType.SUSPENSION_BOOST -> "+${bonus.toInt()}% ride comfort"
+            EffectType.TRACTION_BOOST -> "+${bonus}x traction"
+            EffectType.GROUND_CLEARANCE -> "+${bonus} in"
+            EffectType.BRAKING_BOOST -> "+${bonus.toInt()}% braking"
+            EffectType.FUEL_CAPACITY -> "+${bonus.toInt()} L"
+            EffectType.SUSPENSION_BOOST -> "+${bonus.toInt()}% comfort"
             EffectType.NAVIGATION_BOOST -> "+${bonus.toInt()}% accuracy"
             EffectType.PASSENGER_SATISFACTION -> "+${bonus.toInt()}% satisfaction"
+            EffectType.CAPACITY_BOOST -> "+${bonus.toInt()} seats"
+            EffectType.FUEL_EFFICIENCY -> "-${(bonus * 100).toInt()}% consumption"
         }
     }
 }

@@ -8,9 +8,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.transportsim.app.ui.theme.*
@@ -106,14 +108,14 @@ fun Speedometer(
         // Speed arc
         val progress = (speed / maxSpeed).coerceIn(0f, 1f)
         val sweepAngle = 270f * progress
-        val color = when {
+        val arcColor = when {
             progress < 0.4f -> Green
             progress < 0.7f -> Gold
             else -> Red
         }
         
         drawArc(
-            color = color,
+            color = arcColor,
             startAngle = 135f,
             sweepAngle = sweepAngle,
             useCenter = false,
@@ -172,14 +174,15 @@ fun StatusBar(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.width(30.dp)
         )
+        val bgColor = MaterialTheme.colorScheme.surfaceVariant
         androidx.compose.foundation.Canvas(
             modifier = Modifier
                 .weight(1f)
                 .height(6.dp)
         ) {
             drawRoundRect(
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                radius = 2f
+                color = bgColor,
+                cornerRadius = CornerRadius(2f, 2f)
             )
             drawRoundRect(
                 color = color,
@@ -188,7 +191,7 @@ fun StatusBar(
                     size.width * (value / 100f).coerceIn(0f, 1f),
                     size.height
                 ),
-                radius = 2f
+                cornerRadius = CornerRadius(2f, 2f)
             )
         }
         Text(

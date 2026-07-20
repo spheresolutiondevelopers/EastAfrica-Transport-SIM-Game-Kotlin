@@ -3,11 +3,9 @@ package com.transportsim.data.datasource
 import android.content.Context
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
+import com.squareup.moshi.Types
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
-import com.transportsim.domain.models.VehicleCatalogEntry
-import com.transportsim.domain.models.Upgrade
-import com.transportsim.domain.models.SurfaceType
-import com.transportsim.domain.models.Mission
+import com.transportsim.domain.models.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -29,10 +27,14 @@ class AssetDataSource @Inject constructor(
                     adapter.fromJson(json)
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
-                null
+                throw RuntimeException("Failed to read JSON asset $fileName: ${e.message}", e)
             }
         }
+    }
+
+    suspend fun loadRoutes(): List<Route> {
+        val adapter: JsonAdapter<RoutesContainer> = moshi.adapter(RoutesContainer::class.java)
+        return readJsonAsset("routes/routes.json", adapter)?.routes ?: emptyList()
     }
 
     suspend fun loadVehicleCatalog(): List<VehicleCatalogEntry> {
@@ -42,9 +44,9 @@ class AssetDataSource @Inject constructor(
         return readJsonAsset("config/vehicle_specs.json", adapter) ?: emptyList()
     }
 
-    suspend fun loadUpgradeDefinitions(): List<Upgrade> {
-        val adapter: JsonAdapter<List<Upgrade>> = moshi.adapter(
-            Types.newParameterizedType(List::class.java, Upgrade::class.java)
+    suspend fun loadUpgradeDefinitions(): List<UpgradeDefinition> {
+        val adapter: JsonAdapter<List<UpgradeDefinition>> = moshi.adapter(
+            Types.newParameterizedType(List::class.java, UpgradeDefinition::class.java)
         )
         return readJsonAsset("config/upgrade_defs.json", adapter) ?: emptyList()
     }
@@ -62,4 +64,12 @@ class AssetDataSource @Inject constructor(
         )
         return readJsonAsset("config/mission_templates.json", adapter) ?: emptyList()
     }
+
+    suspend fun loadTrainingScenarios(): List<TrainingScenario> {
+        val adapter = moshi.adapter(TrainingScenariosContainer::class.java)
+        return readJsonAsset("config/training_scenarios.json", adapter)?.scenarios ?: emptyList()
+    }
 }
+
+data class RoutesContainer(val routes: List<Route>)
+data class TrainingScenariosContainer(val scenarios: List<TrainingScenario>)

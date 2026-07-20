@@ -10,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.transportsim.app.ui.theme.*
 import com.transportsim.domain.models.RouteWaypoint
@@ -66,7 +67,7 @@ fun WaypointItem(waypoint: RouteWaypoint) {
     ) {
         // Dot indicator
         val dotColor = if (waypoint.isTerminal) {
-            if (waypoint.distanceFromOriginKm < 1) Green else Red
+            if (waypoint.distanceKm < 1) Green else Red
         } else Cyan
         
         Box(
@@ -92,7 +93,7 @@ fun WaypointItem(waypoint: RouteWaypoint) {
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
-                text = if (waypoint.isTerminal) "Terminal" else "${waypoint.distanceFromOriginKm} km",
+                text = if (waypoint.isTerminal) "Terminal" else "${waypoint.distanceKm} km",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

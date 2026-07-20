@@ -150,3 +150,11 @@ float TerrainChunk::bilinearInterpolate(const std::vector<float>& grid, float x,
 
     return v0 + (v1 - v0) * fy;
 }
+
+float TerrainChunk::bilinearInterpolateClass(const std::vector<uint8_t>& grid, float x, float y) const {
+    return static_cast<float>(getSurfaceClassAt(x / (RESOLUTION - 1), y / (RESOLUTION - 1)));
+}
+
+void TerrainChunk::generateVertexData(float* vertexBuffer, size_t bufferSize) const {
+    // Stub
+}

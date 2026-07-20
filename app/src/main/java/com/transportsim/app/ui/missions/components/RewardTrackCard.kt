@@ -7,8 +7,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.transportsim.app.ui.theme.*
 import com.transportsim.domain.models.DailyReward
 
@@ -129,7 +132,7 @@ fun RewardStepItem(
         Text(
             text = reward.icon,
             fontSize = 20.sp,
-            alpha = if (isUnlocked) 1f else 0.3f
+            modifier = Modifier.alpha(if (isUnlocked) 1f else 0.3f)
         )
         Text(
             text = if (reward.type.name == "CURRENCY") "+${reward.amount}" else "",

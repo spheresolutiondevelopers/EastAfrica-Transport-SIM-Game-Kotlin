@@ -1,0 +1,33 @@
+- [ ] Fix missing imports and simple symbol issues
+    - [ ] CategoryProgressBar.kt
+    - [ ] GarageVehicleList.kt
+    - [ ] LeaderboardCard.kt
+    - [ ] TodayStatsCard.kt
+    - [ ] BoardingOverlay.kt
+    - [ ] BusStopPrompt.kt
+    - [ ] CollisionFlash.kt
+    - [ ] KeyHints.kt
+    - [ ] OverspeedWarning.kt
+    - [ ] ScorePopup.kt
+    - [ ] SimulationLoadingOverlay.kt
+    - [ ] SimulationMiniMap.kt
+    - [ ] SimulationTopHud.kt
+    - [ ] TrafficLightIndicator.kt
+    - [ ] TrainingHeroCard.kt
+    - [ ] TrainingProgressCard.kt
+    - [ ] TrainingScenarioCard.kt
+- [ ] Fix UI Component API Usage
+    - [ ] SettingsTextField.kt (outlinedTextFieldColors)
+    - [ ] FleetFilterBar.kt (AssistChip to FilterChip)
+    - [ ] RewardTrackCard.kt (Text alpha and Gold)
+- [ ] Fix Logic and Type Mismatches
+    - [ ] VehicleTurntable.kt (Return type)
+    - [ ] GarageInventoryPanel.kt (Hex color parsing)
+    - [ ] SimulationScreen.kt (Nullability)
+    - [ ] DashboardScreen.kt (mapVehicles)
+    - [ ] DashboardViewModel.kt (isUnlocked and collection logic)
+    - [ ] SimulationGLSurfaceView.kt (renderFrame)
+- [ ] Fix Complex Simulation UI Logic
+    - [ ] SimulationBottomHud.kt (nativeCanvas, drawRoundRect, Composable context)
+    - [ ] SimulationControls.kt (detectDragGestures, Alignment)
+    - [ ] SimulationMiniMap.kt (drawLine, colors)

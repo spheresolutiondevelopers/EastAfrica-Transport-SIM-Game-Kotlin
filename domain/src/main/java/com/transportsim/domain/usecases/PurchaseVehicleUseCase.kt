@@ -15,17 +15,17 @@ class PurchaseVehicleUseCase(
     suspend operator fun invoke(typeId: String): Result<Vehicle> {
         return runCatching {
             val spec = catalogRepository.getVehicleSpec(typeId)
-            val profile = playerRepository.getProfile()
-            if (profile.balanceKsh < spec.purchaseCostKsh) {
+            val balance = economyRepository.getBalance()
+            if (balance < spec.purchaseCostKsh) {
                 throw IllegalArgumentException("Insufficient balance")
             }
-            // Deduct balance
-            val updatedProfile = profile.copy(balanceKsh = profile.balanceKsh - spec.purchaseCostKsh)
-            playerRepository.updateProfile(updatedProfile)
-            economyRepository.addTransaction(-spec.purchaseCostKsh, "VEHICLE_PURCHASE", "Purchased $typeId")
-
+            
             // Purchase the vehicle via fleet repository
             val vehicle = fleetRepository.purchaseVehicle(typeId).getOrThrow()
+            
+            // Deduct balance and record transaction
+            economyRepository.addTransaction(-spec.purchaseCostKsh, "VEHICLE_PURCHASE", "Purchased $typeId")
+            
             vehicle
         }
     }

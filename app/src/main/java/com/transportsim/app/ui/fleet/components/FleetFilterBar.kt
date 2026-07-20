@@ -3,14 +3,13 @@ package com.transportsim.app.ui.fleet.components
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.transportsim.domain.models.VehicleCategory
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FleetFilterBar(
     selectedCategory: VehicleCategory?,
@@ -27,7 +26,7 @@ fun FleetFilterBar(
         contentPadding = PaddingValues(vertical = 8.dp)
     ) {
         items(allCategories) { category ->
-            AssistChip(
+            FilterChip(
                 onClick = { onCategorySelected(category) },
                 label = {
                     Text(
@@ -36,15 +35,11 @@ fun FleetFilterBar(
                     )
                 },
                 selected = selectedCategory == category,
-                colors = AssistChipDefaults.assistChipColors(
-                    containerColor = if (selectedCategory == category)
-                        MaterialTheme.colorScheme.primaryContainer
-                    else
-                        MaterialTheme.colorScheme.surfaceVariant,
-                    labelColor = if (selectedCategory == category)
-                        MaterialTheme.colorScheme.onPrimaryContainer
-                    else
-                        MaterialTheme.colorScheme.onSurfaceVariant
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    labelColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             )
         }

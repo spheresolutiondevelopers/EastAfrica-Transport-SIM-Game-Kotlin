@@ -3,15 +3,20 @@ package com.transportsim.app.ui.routes
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.transportsim.app.ui.routes.components.RouteInfoCard
 import com.transportsim.app.ui.routes.components.RouteMapPreview
+import com.transportsim.app.ui.routes.components.TodayStatsCard
 import com.transportsim.app.ui.routes.components.WaypointList
 import com.transportsim.app.ui.theme.*
 

@@ -1,0 +1,7 @@
+- [x] Update Hilt version in `libs.versions.toml`
+- [x] Update Hilt version in `settings.gradle.kts`
+- [x] Fix empty DI modules (App, Database, Repository)
+- [x] Add missing Room dependencies to `:app`
+- [x] Create basic `TrainingRepositoryImpl`
+- [x] Fix memory issues in `gradle.properties`
+- [/] Verify build with `./gradlew :app:hiltJavaCompileDebug`

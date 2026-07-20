@@ -20,8 +20,10 @@ fun LevelProgressCard(
     nextLevelXp: Int,
     modifier: Modifier = Modifier
 ) {
-    val progress = if (nextLevelXp > 0) currentXp.toFloat() / nextLevelXp else 0f
-    
+    val progress = if (nextLevelXp > 0) {
+        (currentXp.toFloat() / nextLevelXp).coerceIn(0f, 1f)
+    } else 0f
+
     Card(
         modifier = modifier,
         colors = CardDefaults.cardColors(
@@ -30,7 +32,8 @@ fun LevelProgressCard(
         border = androidx.compose.foundation.BorderStroke(
             1.dp,
             MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-        )
+        ),
+        shape = MaterialTheme.shapes.medium
     ) {
         Row(
             modifier = Modifier
@@ -39,24 +42,27 @@ fun LevelProgressCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text(
-                text = "Level $currentLevel",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = Gold
-            )
-            
+            // Level badge
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Level",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = "$currentLevel",
+                    style = MaterialTheme.typography.displaySmall,
+                    fontWeight = FontWeight.Bold,
+                    color = Gold
+                )
+            }
+
+            // XP progress
             Column(
                 modifier = Modifier.weight(1f)
             ) {
-                LinearProgressIndicator(
-                    progress = progress,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(6.dp),
-                    color = Cyan,
-                    trackColor = MaterialTheme.colorScheme.surfaceVariant
-                )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
@@ -67,11 +73,27 @@ fun LevelProgressCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = "$nextLevelXp XP needed",
+                        text = "$nextLevelXp XP",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+
+                LinearProgressIndicator(
+                    progress = progress,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(6.dp),
+                    color = Cyan,
+                    trackColor = MaterialTheme.colorScheme.surfaceVariant
+                )
+
+                Text(
+                    text = "${(progress * 100).toInt()}% to next level",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.align(Alignment.End)
+                )
             }
         }
     }

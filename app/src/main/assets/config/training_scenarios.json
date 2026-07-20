@@ -1,0 +1,64 @@
+{
+  "scenarios": [
+    {
+      "id": "basic_training",
+      "title": "Basic Training",
+      "description": "Learn the fundamentals of driving in a controlled environment. Master acceleration, braking, and steering.",
+      "icon": "🚌",
+      "difficulty": "BEGINNER",
+      "durationMinutes": 10,
+      "xpReward": 150,
+      "unlockLevel": 0
+    },
+    {
+      "id": "highway_merging",
+      "title": "Highway Merging",
+      "description": "Practice safe merging and lane changes at high speed on a simulated highway.",
+      "icon": "🛣",
+      "difficulty": "BEGINNER",
+      "durationMinutes": 10,
+      "xpReward": 150,
+      "unlockLevel": 2
+    },
+    {
+      "id": "night_driving",
+      "title": "Night Driving",
+      "description": "Sharpen your depth perception and headlight discipline in low-visibility conditions.",
+      "icon": "🌙",
+      "difficulty": "INTERMEDIATE",
+      "durationMinutes": 15,
+      "xpReward": 220,
+      "unlockLevel": 4
+    },
+    {
+      "id": "wet_weather",
+      "title": "Wet Weather Handling",
+      "description": "Master braking distances and skid control on rain-slicked roads with reduced traction.",
+      "icon": "🌧",
+      "difficulty": "INTERMEDIATE",
+      "durationMinutes": 15,
+      "xpReward": 220,
+      "unlockLevel": 5
+    },
+    {
+      "id": "tight_parking",
+      "title": "Tight Reverse Parking",
+      "description": "Reverse-park a full-size bus into a tight terminal bay without clipping the cones.",
+      "icon": "🅿️",
+      "difficulty": "ADVANCED",
+      "durationMinutes": 12,
+      "xpReward": 180,
+      "unlockLevel": 6
+    },
+    {
+      "id": "heavy_cargo",
+      "title": "Heavy Cargo Handling",
+      "description": "Handle a fully-loaded lorry through winding rural roads without losing control.",
+      "icon": "🚛",
+      "difficulty": "ADVANCED",
+      "durationMinutes": 18,
+      "xpReward": 300,
+      "unlockLevel": 8
+    }
+  ]
+}

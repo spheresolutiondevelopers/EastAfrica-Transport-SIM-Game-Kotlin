@@ -25,11 +25,7 @@ class RouteDetailViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true) }
             
             val route = routeRepository.getRoute(routeId)
-            val waypoints = if (route != null) {
-                routeRepository.getRouteWaypoints(routeId)
-            } else {
-                emptyList()
-            }
+            val waypoints = route?.waypoints ?: emptyList()
             
             _uiState.update { state ->
                 state.copy(

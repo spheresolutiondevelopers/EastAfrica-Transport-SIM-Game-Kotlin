@@ -15,13 +15,13 @@ NativeGlobals& getGlobals() {
 
 jlong getNativeHandle(JNIEnv* env, jobject thiz) {
     jclass cls = env->GetObjectClass(thiz);
-    jfieldID fid = env->GetFieldID(cls, "nativeHandle", "J");
+    jfieldID fid = env->GetFieldID(cls, "sessionHandle", "J");
     return env->GetLongField(thiz, fid);
 }
 
 void setNativeHandle(JNIEnv* env, jobject thiz, jlong handle) {
     jclass cls = env->GetObjectClass(thiz);
-    jfieldID fid = env->GetFieldID(cls, "nativeHandle", "J");
+    jfieldID fid = env->GetFieldID(cls, "sessionHandle", "J");
     env->SetLongField(thiz, fid, handle);
 }
 

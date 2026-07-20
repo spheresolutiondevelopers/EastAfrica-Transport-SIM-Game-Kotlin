@@ -22,17 +22,20 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(json)
 
-# Eigen
-set(EIGEN_BUILD_TESTING OFF CACHE BOOL "Disable Eigen internal tests" FORCE)
-set(BUILD_TESTING OFF CACHE BOOL "Disable testing globally" FORCE)
-set(EIGEN_BUILD_DOC OFF CACHE BOOL "Disable Eigen documentation" FORCE)
-set(EIGEN_BUILD_BLAS OFF CACHE BOOL "Disable Eigen BLAS library" FORCE)
-set(EIGEN_BUILD_LAPACK OFF CACHE BOOL "Disable Eigen LAPACK library" FORCE)
+# Eigen (Bypass internal tests/benchmarks by manually defining the interface library)
 FetchContent_Declare(
     eigen
     URL https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz
 )
-FetchContent_MakeAvailable(eigen)
+FetchContent_GetProperties(eigen)
+if(NOT eigen_POPULATED)
+    FetchContent_Populate(eigen)
+    # Manually define the Eigen target instead of add_subdirectory
+    # This prevents CMake from building Eigen's tests and benchmarks
+    add_library(eigen_manual INTERFACE)
+    add_library(Eigen3::Eigen ALIAS eigen_manual)
+    target_include_directories(eigen_manual INTERFACE ${eigen_SOURCE_DIR})
+endif()
 
 # Add the source files
 set(SOURCES
@@ -114,3 +117,6 @@ set_target_properties(transportsim_native PROPERTIES
     CXX_STANDARD_REQUIRED ON
     CXX_EXTENSIONS OFF
 )
+
+# Align to 16 KB boundaries for Android 15+ compatibility
+target_link_options(transportsim_native PRIVATE "-Wl,-z,max-page-size=16384")

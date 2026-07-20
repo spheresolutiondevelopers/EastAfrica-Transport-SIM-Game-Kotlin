@@ -1,23 +1,45 @@
 package com.transportsim.domain.models
 
-enum class TrainingScenarioDifficulty {
+import kotlinx.serialization.Serializable
+
+enum class TrainingDifficulty {
     BEGINNER,
     INTERMEDIATE,
     ADVANCED
 }
 
+@Serializable
 data class TrainingScenario(
     val id: String,
     val title: String,
     val description: String,
-    val difficulty: TrainingScenarioDifficulty,
-    val icon: String, // Emoji or resource
+    val icon: String,
+    val difficulty: TrainingDifficulty,
     val durationMinutes: Int,
     val xpReward: Int,
-    val unlockLevel: Int,
+    val unlockLevel: Int
+)
+
+data class TrainingScenarioWithProgress(
+    val scenario: TrainingScenario,
+    val progress: TrainingProgress
+) {
+    val isUnlocked: Boolean get() = progress.isUnlocked
+    val isCompleted: Boolean get() = progress.isCompleted
+    val bestScore: Int get() = progress.bestScore
+    val timesCompleted: Int get() = progress.timesCompleted
+    val stars: Int get() = progress.stars
+}
+
+data class TrainingProgress(
+    val scenarioId: String,
     val isUnlocked: Boolean = false,
     val isCompleted: Boolean = false,
-    val bestScore: Int? = null
+    val bestScore: Int = 0,
+    val timesCompleted: Int = 0,
+    val stars: Int = 0,
+    val lastPlayedAt: String? = null,
+    val unlockLevel: Int = 1
 )
 
 data class TrainingResult(

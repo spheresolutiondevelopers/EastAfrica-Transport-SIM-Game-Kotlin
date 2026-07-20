@@ -4,104 +4,94 @@ import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.googlefonts.Font
+import androidx.compose.ui.text.googlefonts.GoogleFont
 import androidx.compose.ui.unit.sp
+import com.transportsim.app.R
 
-// Use system fonts for better compatibility
-private val DefaultFontFamily = FontFamily.Default
-private val MonoFontFamily = FontFamily.Monospace
+val provider = GoogleFont.Provider(
+    providerAuthority = "com.google.android.gms.fonts",
+    providerPackage = "com.google.android.gms",
+    certificates = R.array.com_google_android_gms_fonts_certs
+)
+
+val RajdhaniFont = GoogleFont("Rajdhani")
+val OrbitronFont = GoogleFont("Orbitron")
+val ShareTechMonoFont = GoogleFont("Share Tech Mono")
+
+val RajdhaniFamily = FontFamily(
+    Font(googleFont = RajdhaniFont, fontProvider = provider, weight = FontWeight.Normal),
+    Font(googleFont = RajdhaniFont, fontProvider = provider, weight = FontWeight.Medium),
+    Font(googleFont = RajdhaniFont, fontProvider = provider, weight = FontWeight.SemiBold),
+    Font(googleFont = RajdhaniFont, fontProvider = provider, weight = FontWeight.Bold)
+)
+
+val OrbitronFamily = FontFamily(
+    Font(googleFont = OrbitronFont, fontProvider = provider, weight = FontWeight.Normal),
+    Font(googleFont = OrbitronFont, fontProvider = provider, weight = FontWeight.Bold),
+    Font(googleFont = OrbitronFont, fontProvider = provider, weight = FontWeight.Black)
+)
+
+val ShareTechMonoFamily = FontFamily(
+    Font(googleFont = ShareTechMonoFont, fontProvider = provider, weight = FontWeight.Normal)
+)
 
 val Typography = Typography(
+    // Headlines use Orbitron
     displayLarge = TextStyle(
-        fontFamily = DefaultFontFamily,
+        fontFamily = OrbitronFamily,
         fontWeight = FontWeight.Bold,
-        fontSize = 52.sp,
-        lineHeight = 56.sp,
-        letterSpacing = (-0.03).sp
-    ),
-    displayMedium = TextStyle(
-        fontFamily = DefaultFontFamily,
-        fontWeight = FontWeight.Bold,
-        fontSize = 38.sp,
-        lineHeight = 42.sp,
-        letterSpacing = (-0.02).sp
-    ),
-    displaySmall = TextStyle(
-        fontFamily = DefaultFontFamily,
-        fontWeight = FontWeight.Bold,
-        fontSize = 30.sp,
-        lineHeight = 34.sp,
-        letterSpacing = (-0.02).sp
-    ),
-    headlineLarge = TextStyle(
-        fontFamily = DefaultFontFamily,
-        fontWeight = FontWeight.Bold,
-        fontSize = 24.sp,
-        lineHeight = 28.sp,
-        letterSpacing = (-0.01).sp
+        fontSize = 32.sp,
+        letterSpacing = 2.sp
     ),
     headlineMedium = TextStyle(
-        fontFamily = DefaultFontFamily,
-        fontWeight = FontWeight.SemiBold,
+        fontFamily = OrbitronFamily,
+        fontWeight = FontWeight.Bold,
         fontSize = 20.sp,
-        lineHeight = 24.sp
+        letterSpacing = 1.5.sp
     ),
     headlineSmall = TextStyle(
-        fontFamily = DefaultFontFamily,
+        fontFamily = OrbitronFamily,
         fontWeight = FontWeight.SemiBold,
         fontSize = 16.sp,
-        lineHeight = 20.sp
+        letterSpacing = 1.sp
     ),
+    
+    // Titles and Body use Rajdhani
     titleLarge = TextStyle(
-        fontFamily = DefaultFontFamily,
+        fontFamily = RajdhaniFamily,
         fontWeight = FontWeight.Bold,
-        fontSize = 15.sp,
-        lineHeight = 18.sp
+        fontSize = 18.sp
     ),
     titleMedium = TextStyle(
-        fontFamily = DefaultFontFamily,
-        fontWeight = FontWeight.Medium,
-        fontSize = 13.sp,
-        lineHeight = 16.sp
-    ),
-    titleSmall = TextStyle(
-        fontFamily = DefaultFontFamily,
-        fontWeight = FontWeight.Medium,
-        fontSize = 11.sp,
-        lineHeight = 14.sp
+        fontFamily = RajdhaniFamily,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 14.sp
     ),
     bodyLarge = TextStyle(
-        fontFamily = DefaultFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 15.sp,
-        lineHeight = 22.sp
+        fontFamily = RajdhaniFamily,
+        fontWeight = FontWeight.Medium,
+        fontSize = 15.sp
     ),
     bodyMedium = TextStyle(
-        fontFamily = DefaultFontFamily,
+        fontFamily = RajdhaniFamily,
         fontWeight = FontWeight.Normal,
-        fontSize = 13.sp,
-        lineHeight = 20.sp
+        fontSize = 13.sp
     ),
-    bodySmall = TextStyle(
-        fontFamily = DefaultFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 11.sp,
-        lineHeight = 18.sp
-    ),
+    
+    // Labels and Monospace sections use Share Tech Mono
     labelLarge = TextStyle(
-        fontFamily = MonoFontFamily,
-        fontWeight = FontWeight.Bold,
-        fontSize = 10.sp,
+        fontFamily = ShareTechMonoFamily,
+        fontSize = 12.sp,
         letterSpacing = 1.sp
     ),
     labelMedium = TextStyle(
-        fontFamily = MonoFontFamily,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 9.sp,
-        letterSpacing = 0.8.sp
+        fontFamily = ShareTechMonoFamily,
+        fontSize = 10.sp,
+        letterSpacing = 0.5.sp
     ),
     labelSmall = TextStyle(
-        fontFamily = MonoFontFamily,
-        fontWeight = FontWeight.Medium,
+        fontFamily = ShareTechMonoFamily,
         fontSize = 8.sp,
         letterSpacing = 0.5.sp
     )

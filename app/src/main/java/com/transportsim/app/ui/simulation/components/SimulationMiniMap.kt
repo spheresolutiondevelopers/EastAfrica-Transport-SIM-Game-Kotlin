@@ -6,10 +6,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.unit.dp
+import com.transportsim.app.ui.theme.*
 import com.transportsim.app.ui.simulation.TrafficVehicle
 import com.transportsim.domain.models.RouteWaypoint
 import com.transportsim.domain.models.TrafficLightPhase
@@ -63,7 +66,7 @@ fun SimulationMiniMap(
                         start = routePoints[i],
                         end = routePoints[i + 1],
                         strokeWidth = 2f,
-                        style = androidx.compose.ui.graphics.StrokeCap.Round
+                        cap = StrokeCap.Round
                     )
                 }
                 

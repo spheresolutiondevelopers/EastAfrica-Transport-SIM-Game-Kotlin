@@ -65,14 +65,19 @@ fun AppNavHost(
                     appState.navigateToSimulation(routeId, vehicleId)
                 },
                 onStartTraining = { appState.navigateTo(Destinations.TRAINING) },
-                onNavigateToFleet = { appState.navigateTo(Destinations.FLEET) }
+                onNavigateToFleet = { appState.navigateTo(Destinations.FLEET) },
+                onNavigateToRoutes = { appState.navigateTo(Destinations.ROUTES) },
+                onNavigateToMissions = { appState.navigateTo(Destinations.MISSIONS) },
+                onNavigateToGarage = { appState.navigateTo(Destinations.GARAGE) },
+                onNavigateToSettings = { appState.navigateTo(Destinations.SETTINGS) }
             )
         }
         
         composable(Destinations.FLEET) {
             FleetScreen(
                 onVehicleSelected = appState::navigateToFleetDetail,
-                onNavigateBack = appState::popBackStack
+                onNavigateBack = appState::popBackStack,
+                onNavigateToSettings = { appState.navigateTo(Destinations.SETTINGS) }
             )
         }
         
@@ -94,7 +99,8 @@ fun AppNavHost(
         composable(Destinations.ROUTES) {
             RoutesScreen(
                 onRouteSelected = appState::navigateToRouteDetail,
-                onNavigateBack = appState::popBackStack
+                onNavigateBack = appState::popBackStack,
+                onNavigateToSettings = { appState.navigateTo(Destinations.SETTINGS) }
             )
         }
         
@@ -115,7 +121,8 @@ fun AppNavHost(
         composable(Destinations.MISSIONS) {
             MissionsScreen(
                 onMissionSelected = appState::navigateToMissionDetail,
-                onNavigateBack = appState::popBackStack
+                onNavigateBack = appState::popBackStack,
+                onNavigateToSettings = { appState.navigateTo(Destinations.SETTINGS) }
             )
         }
         
@@ -133,7 +140,8 @@ fun AppNavHost(
         composable(Destinations.GARAGE) {
             GarageScreen(
                 onVehicleSelected = appState::navigateToGarage,
-                onNavigateBack = appState::popBackStack
+                onNavigateBack = appState::popBackStack,
+                onNavigateToSettings = { appState.navigateTo(Destinations.SETTINGS) }
             )
         }
         
@@ -172,9 +180,6 @@ fun AppNavHost(
         
         composable(Destinations.TRAINING) {
             TrainingScreen(
-                onStartTraining = { scenarioName ->
-                    appState.navigateToSimulation("training", 0) // Training uses special route
-                },
                 onNavigateBack = appState::popBackStack
             )
         }

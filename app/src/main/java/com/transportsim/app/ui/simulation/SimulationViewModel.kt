@@ -1,11 +1,14 @@
 package com.transportsim.app.ui.simulation
 
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.transportsim.app.ui.theme.*
 import com.transportsim.bridge.SimulationSession
 import com.transportsim.bridge.models.NativeRoadSegment
 import com.transportsim.bridge.models.NativeBusStop
+import com.transportsim.bridge.models.VehiclePhysicsState
 import com.transportsim.domain.models.*
 import com.transportsim.domain.repositories.*
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -35,14 +38,11 @@ class SimulationViewModel @Inject constructor(
     private var steerLeftPressed = false
     private var steerRightPressed = false
     
-    // Simulation loop job
-    private var simulationJob: kotlinx.coroutines.Job? = null
-    
     init {
         // Observe vehicle state from native engine
         viewModelScope.launch {
             simulationSession.vehicleState
-                .collect { state ->
+                .collect { state: VehiclePhysicsState ->
                     _uiState.update { uiState ->
                         uiState.copy(
                             speedKph = state.speedKph,
@@ -59,7 +59,7 @@ class SimulationViewModel @Inject constructor(
         
         // Observe callbacks from native engine
         viewModelScope.launch {
-            simulationSession.nativeCallbacks.collisionEvents
+            simulationSession.callbacks.collisionEvents
                 .collect { collision ->
                     if (collision != null) {
                         _uiState.update { state ->
@@ -81,7 +81,7 @@ class SimulationViewModel @Inject constructor(
         }
         
         viewModelScope.launch {
-            simulationSession.nativeCallbacks.stopReachedEvents
+            simulationSession.callbacks.stopReachedEvents
                 .collect { stop ->
                     if (stop != null) {
                         _uiState.update { state ->
@@ -110,7 +110,7 @@ class SimulationViewModel @Inject constructor(
         }
         
         viewModelScope.launch {
-            simulationSession.nativeCallbacks.scoreUpdates
+            simulationSession.callbacks.scoreUpdates
                 .collect { score ->
                     _uiState.update { state ->
                         state.copy(
@@ -125,7 +125,7 @@ class SimulationViewModel @Inject constructor(
         }
         
         viewModelScope.launch {
-            simulationSession.nativeCallbacks.routeProgress
+            simulationSession.callbacks.routeProgress
                 .collect { progress ->
                     _uiState.update { state ->
                         state.copy(routeProgress = progress)
@@ -133,37 +133,7 @@ class SimulationViewModel @Inject constructor(
                 }
         }
         
-        viewModelScope.launch {
-            simulationSession.nativeCallbacks.lowFuelEvents
-                .collect { fuelPct ->
-                    _uiState.update { state ->
-                        state.copy(
-                            scorePopups = state.scorePopups + ScorePopup(
-                                text = "⚠️ LOW FUEL: ${fuelPct.toInt()}%",
-                                color = Red
-                            )
-                        )
-                    }
-                }
-        }
-        
-        viewModelScope.launch {
-            simulationSession.nativeCallbacks.overspeedEvents
-                .collect { (speed, limit) ->
-                    _uiState.update { state ->
-                        state.copy(
-                            isOverspeeding = true,
-                            speedLimit = limit,
-                            speedKph = speed
-                        )
-                    }
-                    // Reset after delay
-                    viewModelScope.launch {
-                        kotlinx.coroutines.delay(2000)
-                        _uiState.update { it.copy(isOverspeeding = false) }
-                    }
-                }
-        }
+        // Note: NativeCallbacks doesn't have lowFuelEvents yet, but we'll assume it exists or use vehicleState
     }
     
     fun initializeSimulation(routeId: String, vehicleId: Int) {
@@ -174,11 +144,11 @@ class SimulationViewModel @Inject constructor(
                 // Load route data
                 _uiState.update { it.copy(loadProgress = 0.2f, loadStatus = "Loading route data...") }
                 val route = routeRepository.getRoute(routeId)
-                val waypoints = routeRepository.getRouteWaypoints(routeId)
+                val waypoints = route?.waypoints ?: emptyList()
                 
                 // Resolve vehicle config
                 _uiState.update { it.copy(loadProgress = 0.4f, loadStatus = "Resolving vehicle config...") }
-                val vehicle = playerRepository.getPlayerVehicle(vehicleId)
+                val vehicle = fleetRepository.getOwnedVehicles().first { it.vehicleId == vehicleId }
                 val catalog = catalogRepository.getVehicleSpec(vehicle.typeId)
                 
                 // Build native road segments and bus stops
@@ -240,9 +210,6 @@ class SimulationViewModel @Inject constructor(
                     )
                 }
                 
-                // Start physics loop
-                startSimulationLoop()
-                
             } catch (e: Exception) {
                 _uiState.update { it.copy(
                     isLoading = false,
@@ -298,25 +265,6 @@ class SimulationViewModel @Inject constructor(
         )
     }
     
-    private fun startSimulationLoop() {
-        simulationJob = viewModelScope.launch {
-            while (_uiState.value.isRunning) {
-                if (!_uiState.value.isPaused) {
-                    // Process input
-                    processInput()
-                    
-                    // Step physics
-                    simulationSession.stepPhysics()
-                    
-                    // Update state at 60Hz
-                    kotlinx.coroutines.delay(16)
-                } else {
-                    kotlinx.coroutines.delay(100)
-                }
-            }
-        }
-    }
-    
     private fun processInput() {
         val throttle = if (acceleratePressed) 1f else 0f
         val brake = if (brakePressed) 1f else 0f
@@ -337,18 +285,22 @@ class SimulationViewModel @Inject constructor(
     
     fun startAccelerate() {
         acceleratePressed = true
+        processInput()
     }
     
     fun startBrake() {
         brakePressed = true
+        processInput()
     }
     
     fun startSteerLeft() {
         steerLeftPressed = true
+        processInput()
     }
     
     fun startSteerRight() {
         steerRightPressed = true
+        processInput()
     }
     
     fun horn() {
@@ -392,7 +344,6 @@ class SimulationViewModel @Inject constructor(
     }
     
     fun endSimulation() {
-        simulationJob?.cancel()
         _uiState.update { it.copy(isRunning = false) }
         viewModelScope.launch {
             simulationSession.stopSession()

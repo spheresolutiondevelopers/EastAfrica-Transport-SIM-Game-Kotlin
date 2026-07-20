@@ -3,12 +3,15 @@ package com.transportsim.app.ui.routes
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.transportsim.app.ui.routes.components.RouteCard
@@ -20,6 +23,7 @@ import com.transportsim.domain.models.Route
 fun RoutesScreen(
     onRouteSelected: (String) -> Unit,
     onNavigateBack: () -> Unit,
+    onNavigateToSettings: () -> Unit,
     viewModel: RoutesViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -37,7 +41,7 @@ fun RoutesScreen(
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
-                            imageVector = androidx.compose.material.icons.Icons.Default.ArrowBack,
+                            imageVector = Icons.Default.ArrowBack,
                             contentDescription = "Back"
                         )
                     }
@@ -47,7 +51,7 @@ fun RoutesScreen(
                     var expanded by remember { mutableStateOf(false) }
                     IconButton(onClick = { expanded = true }) {
                         Icon(
-                            imageVector = androidx.compose.material.icons.Icons.Default.FilterList,
+                            imageVector = Icons.Default.FilterList,
                             contentDescription = "Filter"
                         )
                     }
@@ -71,6 +75,12 @@ fun RoutesScreen(
                                 }
                             )
                         }
+                    }
+                    IconButton(onClick = onNavigateToSettings) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Settings"
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -122,42 +132,60 @@ fun RoutesScreen(
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(uiState.routes) { route ->
-                        RouteCard(
-                            route = route,
-                            isSelected = uiState.selectedRouteId == route.routeId,
-                            onClick = { 
-                                viewModel.selectRoute(route.routeId)
-                                onRouteSelected(route.routeId)
-                            },
-                            onAssign = { viewModel.assignVehicleToRoute(route.routeId) },
-                            onUnlock = { viewModel.unlockRoute(route.routeId) },
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-                    
-                    // DLC / locked route section
-                    if (uiState.lockedRoutes.isNotEmpty()) {
+                    // Show training routes first
+                    val trainingRoutes = uiState.routes.filter { it.isTraining }
+                    val regularRoutes = uiState.routes.filter { !it.isTraining }
+
+                    if (trainingRoutes.isNotEmpty()) {
                         item {
-                            Divider(
-                                modifier = Modifier.padding(vertical = 16.dp),
-                                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-                            )
                             Text(
-                                text = "🔒 Locked Routes",
+                                text = "🎓 Training",
                                 style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = Purple,
                                 modifier = Modifier.padding(bottom = 8.dp)
                             )
                         }
-                        items(uiState.lockedRoutes) { route ->
+                        items(trainingRoutes) { route ->
                             RouteCard(
                                 route = route,
-                                isSelected = false,
-                                isLocked = true,
-                                onClick = { /* Show unlock dialog */ },
-                                onAssign = {},
-                                onUnlock = { viewModel.unlockRoute(route.routeId) },
+                                stats = uiState.routeStatsMap[route.id],
+                                isSelected = uiState.selectedRouteId == route.id,
+                                isLocked = route.unlockLevel > uiState.playerLevel,
+                                onClick = { 
+                                    viewModel.selectRoute(route.id)
+                                    onRouteSelected(route.id)
+                                },
+                                onAssign = { viewModel.assignVehicleToRoute(route.id) },
+                                onUnlock = { viewModel.unlockRoute(route.id) },
+                                onStart = { viewModel.startRoute(route.id) },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    }
+
+                    if (regularRoutes.isNotEmpty()) {
+                        item {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "📍 Kenya Routes",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = Green,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                        }
+                        items(regularRoutes) { route ->
+                            RouteCard(
+                                route = route,
+                                stats = uiState.routeStatsMap[route.id],
+                                isSelected = uiState.selectedRouteId == route.id,
+                                isLocked = route.unlockLevel > uiState.playerLevel,
+                                onClick = { 
+                                    viewModel.selectRoute(route.id)
+                                    onRouteSelected(route.id)
+                                },
+                                onAssign = { viewModel.assignVehicleToRoute(route.id) },
+                                onUnlock = { viewModel.unlockRoute(route.id) },
+                                onStart = { viewModel.startRoute(route.id) },
                                 modifier = Modifier.fillMaxWidth()
                             )
                         }

@@ -23,7 +23,7 @@ interface PlayerVehicleDao {
     suspend fun getActiveVehicles(): List<PlayerVehicleEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(vehicle: PlayerVehicleEntity)
+    suspend fun insert(vehicle: PlayerVehicleEntity): Long
 
     @Update
     suspend fun update(vehicle: PlayerVehicleEntity)

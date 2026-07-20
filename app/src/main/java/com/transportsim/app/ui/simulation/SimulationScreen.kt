@@ -180,7 +180,7 @@ fun SimulationScreen(
         // Boarding overlay
         if (uiState.isBoarding) {
             BoardingOverlay(
-                passengerCount = uiState.boardingPassengers,
+                passengerCount = uiState.boardingPassengers ?: 0,
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(end = 200.dp, bottom = 100.dp)

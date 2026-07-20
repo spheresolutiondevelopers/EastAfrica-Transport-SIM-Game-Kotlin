@@ -3,27 +3,29 @@ package com.transportsim.app.ui.training
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.transportsim.app.ui.training.components.TrainingScenarioCard
+import com.transportsim.app.ui.training.components.*
 import com.transportsim.app.ui.theme.*
-import com.transportsim.domain.models.TrainingScenario
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TrainingScreen(
-    onStartTraining: (String) -> Unit,
     onNavigateBack: () -> Unit,
     viewModel: TrainingViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -32,10 +34,7 @@ fun TrainingScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text(
-                            text = "🎓",
-                            style = MaterialTheme.typography.headlineSmall
-                        )
+                        Text("🎓", style = MaterialTheme.typography.headlineSmall)
                         Text(
                             text = "Training Center",
                             style = MaterialTheme.typography.headlineSmall,
@@ -46,7 +45,7 @@ fun TrainingScreen(
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
-                            imageVector = androidx.compose.material.icons.Icons.Default.ArrowBack,
+                            imageVector = Icons.Default.ArrowBack,
                             contentDescription = "Back"
                         )
                     }
@@ -102,20 +101,23 @@ fun TrainingScreen(
                 ) {
                     // Hero section
                     item {
-                        TrainingHeroCard()
+                        TrainingHeroCard(
+                            playerLevel = uiState.playerLevel,
+                            completedCount = uiState.completedCount,
+                            totalCount = uiState.totalCount
+                        )
                     }
-                    
+
                     // Scenarios
-                    items(uiState.scenarios) { scenario ->
+                    items(uiState.scenarios) { scenarioWithProgress ->
                         TrainingScenarioCard(
-                            scenario = scenario,
-                            isUnlocked = scenario.isUnlocked,
-                            onStart = { onStartTraining(scenario.id) },
-                            onUnlock = { viewModel.unlockScenario(scenario.id) },
+                            scenario = scenarioWithProgress,
+                            onStart = { viewModel.startTraining(scenarioWithProgress.scenario.id) },
+                            onUnlock = { viewModel.unlockScenario(scenarioWithProgress.scenario.id) },
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
-                    
+
                     // Overall progress
                     item {
                         TrainingProgressCard(
@@ -127,5 +129,40 @@ fun TrainingScreen(
                 }
             }
         }
+    }
+
+    // "Not Yet Implemented" Dialog
+    if (uiState.showNotImplementedDialog) {
+        AlertDialog(
+            onDismissRequest = { viewModel.dismissNotImplementedDialog() },
+            title = { Text("🚧 Coming Soon", color = Gold) },
+            text = {
+                Column {
+                    Text(
+                        text = "Simulation is not yet implemented.",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "This training scenario will be available in a future update.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { viewModel.dismissNotImplementedDialog() },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Cyan,
+                        contentColor = Color.Black
+                    )
+                ) {
+                    Text("OK", fontWeight = FontWeight.Bold)
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.surface,
+            shape = MaterialTheme.shapes.medium
+        )
     }
 }

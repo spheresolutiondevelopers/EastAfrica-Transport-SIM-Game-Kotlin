@@ -2,222 +2,143 @@ package com.transportsim.app.ui.fleet.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.transportsim.app.ui.theme.*
-import com.transportsim.domain.models.Vehicle
-import com.transportsim.domain.models.VehicleStatus
+import com.transportsim.domain.models.FleetVehicle
 
 @Composable
 fun FleetVehicleCard(
-    vehicle: Vehicle,
-    onClick: () -> Unit,
+    fleetVehicle: FleetVehicle,
+    onPurchase: (String) -> Unit,
     onDeploy: () -> Unit,
     onService: () -> Unit,
-    modifier: Modifier = Modifier
+    onSelect: () -> Unit
 ) {
-    val categoryColor = when {
-        vehicle.typeId.startsWith("bus") -> Cyan
-        vehicle.typeId.startsWith("matatu") -> Gold
-        vehicle.typeId.startsWith("pickup") -> Green
-        vehicle.typeId.startsWith("lorry") -> Orange
-        vehicle.typeId.startsWith("boda") -> Purple
-        vehicle.typeId.startsWith("taxi") -> Pink
-        else -> MaterialTheme.colorScheme.onSurface
-    }
-    
+    val isOwned = fleetVehicle.isOwned
+    val vehicle = fleetVehicle.ownedVehicle
+    val catalog = fleetVehicle.catalogEntry
+
     Card(
-        modifier = modifier
-            .clickable { onClick() },
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { if (isOwned) onSelect() },
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+            containerColor = if (isOwned)
+                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+            else
+                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
         ),
-        border = androidx.compose.foundation.BorderStroke(
-            1.dp,
-            categoryColor.copy(alpha = 0.3f)
-        ),
-        shape = RoundedCornerShape(10.dp)
+        border = if (isOwned)
+            androidx.compose.foundation.BorderStroke(1.dp, Cyan.copy(alpha = 0.4f))
+        else
+            androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(12.dp)
         ) {
-            // Header with level badge
+            // Header: icon, name, status
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                // Icon and name
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    val icon = when {
-                        vehicle.typeId.startsWith("bus") -> "🚌"
-                        vehicle.typeId.startsWith("matatu") -> "🚐"
-                        vehicle.typeId.startsWith("pickup") -> "🛻"
-                        vehicle.typeId.startsWith("lorry") -> "🚛"
-                        vehicle.typeId.startsWith("boda") -> "🏍"
-                        vehicle.typeId.startsWith("taxi") -> "🚕"
-                        else -> "🚗"
-                    }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(catalog.emoji, fontSize = 24.sp)
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = icon,
-                        fontSize = 18.sp
+                        text = catalog.displayName,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold
                     )
-                    Column {
-                        Text(
-                            text = vehicle.displayName ?: vehicle.typeId,
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold,
-                            maxLines = 1
-                        )
-                        Text(
-                            text = "SN: ${vehicle.serialNumber}",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
                 }
-                
-                // Level badge (simplified)
-                Surface(
-                    color = Gold.copy(alpha = 0.2f),
-                    shape = RoundedCornerShape(4.dp),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Gold.copy(alpha = 0.5f))
-                ) {
-                    Text(
-                        text = "LVL ${(vehicle.odometerKm / 100).toInt() + 1}",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = Gold,
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                    )
+                if (isOwned) {
+                    Text("✓ Owned", color = Green, style = MaterialTheme.typography.labelSmall)
+                } else {
+                    Text("🔒 Locked", color = Red, style = MaterialTheme.typography.labelSmall)
                 }
             }
-            
+
             Spacer(modifier = Modifier.height(8.dp))
-            
-            // Stats grid
+
+            // Stats
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                FleetStatItem(
-                    label = "Speed",
-                    value = "80 km/h",
-                    modifier = Modifier.weight(1f)
+                FleetStatItem("Speed", "${catalog.maxSpeedKph.toInt()} km/h", Modifier.weight(1f))
+                FleetStatItem("Capacity", "${catalog.passengerCapacity}", Modifier.weight(1f))
+                FleetStatItem("Fuel", "${catalog.fuelConsumptionL100km.toInt()} L/100", Modifier.weight(1f))
+            }
+
+            // Condition bar (if owned)
+            if (isOwned && vehicle != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                LinearProgressIndicator(
+                    progress = { vehicle.conditionPct / 100f },
+                    modifier = Modifier.fillMaxWidth().height(4.dp),
+                    color = when {
+                        vehicle.conditionPct > 80 -> Green
+                        vehicle.conditionPct > 50 -> Gold
+                        else -> Red
+                    },
+                    trackColor = MaterialTheme.colorScheme.surfaceVariant
                 )
-                FleetStatItem(
-                    label = "Capacity",
-                    value = "48 pax",
-                    modifier = Modifier.weight(1f)
-                )
-                FleetStatItem(
-                    label = "Condition",
-                    value = "${vehicle.conditionPct.toInt()}%",
-                    modifier = Modifier.weight(1f)
+                Text(
+                    text = "Condition: ${vehicle.conditionPct.toInt()}%",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.align(Alignment.End)
                 )
             }
-            
+
+            // Action button
             Spacer(modifier = Modifier.height(8.dp))
-            
-            // Condition bar
-            LinearProgressIndicator(
-                progress = vehicle.conditionPct / 100f,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(4.dp),
-                color = when {
-                    vehicle.conditionPct > 80 -> Green
-                    vehicle.conditionPct > 50 -> Gold
-                    else -> Red
-                },
-                trackColor = MaterialTheme.colorScheme.surfaceVariant
-            )
-            
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            // Status and action buttons
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Status badge
-                Surface(
-                    color = when (vehicle.status) {
-                        VehicleStatus.ACTIVE -> Green.copy(alpha = 0.15f)
-                        VehicleStatus.IDLE -> Gold.copy(alpha = 0.15f)
-                        VehicleStatus.GARAGE -> Red.copy(alpha = 0.15f)
-                    },
-                    shape = RoundedCornerShape(10.dp),
-                    border = androidx.compose.foundation.BorderStroke(
-                        1.dp,
-                        when (vehicle.status) {
-                            VehicleStatus.ACTIVE -> Green
-                            VehicleStatus.IDLE -> Gold
-                            VehicleStatus.GARAGE -> Red
-                        }
-                    ),
-                    modifier = Modifier.weight(0.5f)
+            if (isOwned && vehicle != null) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text(
-                        text = vehicle.status.name,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = when (vehicle.status) {
-                            VehicleStatus.ACTIVE -> Green
-                            VehicleStatus.IDLE -> Gold
-                            VehicleStatus.GARAGE -> Red
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
-                    )
-                }
-                
-                // Deploy button (only if idle)
-                if (vehicle.status == VehicleStatus.IDLE) {
                     Button(
                         onClick = onDeploy,
-                        modifier = Modifier.weight(0.5f),
+                        modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Green,
                             contentColor = Color.White
                         ),
-                        shape = RoundedCornerShape(5.dp)
+                        contentPadding = PaddingValues(0.dp)
                     ) {
-                        Text(
-                            text = "Deploy",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold
-                        )
+                        Text("Deploy", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
                     }
-                } else {
                     Button(
                         onClick = onService,
-                        modifier = Modifier.weight(0.5f),
+                        modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            contentColor = MaterialTheme.colorScheme.onSurface
                         ),
-                        shape = RoundedCornerShape(5.dp)
+                        contentPadding = PaddingValues(0.dp)
                     ) {
-                        Text(
-                            text = "Service",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold
-                        )
+                        Text("Service", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
                     }
+                }
+            } else {
+                Button(
+                    onClick = { onPurchase(catalog.id) },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Gold,
+                        contentColor = Color.Black
+                    )
+                ) {
+                    Text("Purchase — KSH ${catalog.purchaseCostKsh}", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -232,18 +153,18 @@ fun FleetStatItem(
 ) {
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(5.dp),
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(4.dp),
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(8.dp),
+                .padding(4.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = value,
-                style = MaterialTheme.typography.titleSmall,
+                style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Bold,
                 color = Cyan
             )

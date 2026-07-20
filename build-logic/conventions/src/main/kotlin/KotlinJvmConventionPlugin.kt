@@ -16,6 +16,7 @@ class KotlinJvmConventionPlugin : Plugin<Project> {
             apply(plugin = "org.jetbrains.kotlin.jvm")
 
             extensions.configure<KotlinJvmProjectExtension> {
+                jvmToolchain(21)
                 compilerOptions {
                     jvmTarget.set(JvmTarget.JVM_21)
                 }

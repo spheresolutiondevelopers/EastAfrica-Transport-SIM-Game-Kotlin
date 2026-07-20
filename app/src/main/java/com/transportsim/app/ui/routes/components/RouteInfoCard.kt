@@ -41,7 +41,7 @@ fun RouteInfoCard(
             
             Spacer(modifier = Modifier.height(8.dp))
             
-            RouteInfoRow("Route ID", route.routeId)
+            RouteInfoRow("Route ID", route.id)
             RouteInfoRow("Distance", "${route.distanceKm} km")
             RouteInfoRow("Duration", "${route.durationMin} min")
             RouteInfoRow("Terrain", route.terrainType.name)

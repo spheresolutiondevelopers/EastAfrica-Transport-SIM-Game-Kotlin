@@ -1,0 +1,68 @@
+[
+  {
+    "upgradeId": "engine_power",
+    "displayName": "Engine Power",
+    "description": "Upgrade from standard engine to high-performance V8. Increases top speed and acceleration.",
+    "icon": "⚡",
+    "maxLevel": 5,
+    "costPerLevel": [1500, 2200, 3000, 4000, 5500],
+    "effectPerLevel": [5.0, 4.0, 3.5, 3.0, 2.5],
+    "effectType": "SPEED_BOOST",
+    "effectUnit": "km/h"
+  },
+  {
+    "upgradeId": "drivetrain",
+    "displayName": "Drivetrain",
+    "description": "Upgrade from 2WD to 4WD or AWD. Improves traction and off-road capability.",
+    "icon": "🛞",
+    "maxLevel": 3,
+    "costPerLevel": [2000, 3500, 5000],
+    "effectPerLevel": [1.0, 1.5, 2.0],
+    "effectType": "TRACTION_BOOST",
+    "effectUnit": "x"
+  },
+  {
+    "upgradeId": "suspension_lift",
+    "displayName": "Suspension Lift",
+    "description": "Increase ground clearance for better off-road performance. Reduces body roll.",
+    "icon": "🔧",
+    "maxLevel": 4,
+    "costPerLevel": [1200, 1800, 2500, 3500],
+    "effectPerLevel": [1.0, 1.5, 2.0, 2.5],
+    "effectType": "GROUND_CLEARANCE",
+    "effectUnit": "inches"
+  },
+  {
+    "upgradeId": "tires",
+    "displayName": "Tires",
+    "description": "All-terrain tires for improved grip on all surfaces. Reduces wear.",
+    "icon": "🛞",
+    "maxLevel": 4,
+    "costPerLevel": [800, 1200, 1800, 2500],
+    "effectPerLevel": [1.0, 1.2, 1.5, 1.8],
+    "effectType": "TRACTION_BOOST",
+    "effectUnit": "x"
+  },
+  {
+    "upgradeId": "brake_system",
+    "displayName": "Brake System",
+    "description": "Upgrade to high-performance brakes. Reduces stopping distance.",
+    "icon": "🛑",
+    "maxLevel": 3,
+    "costPerLevel": [1000, 1800, 2800],
+    "effectPerLevel": [5.0, 4.0, 3.0],
+    "effectType": "BRAKING_BOOST",
+    "effectUnit": "%"
+  },
+  {
+    "upgradeId": "fuel_tank",
+    "displayName": "Extended Fuel Tank",
+    "description": "Larger fuel capacity for longer routes without refueling.",
+    "icon": "⛽",
+    "maxLevel": 3,
+    "costPerLevel": [1500, 2200, 3000],
+    "effectPerLevel": [10.0, 15.0, 20.0],
+    "effectType": "FUEL_CAPACITY",
+    "effectUnit": "L"
+  }
+]

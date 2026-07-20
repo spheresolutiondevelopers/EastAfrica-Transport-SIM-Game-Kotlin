@@ -1,0 +1,3 @@
+- [x] Create missing font certificates resource
+- [x] Update `Theme.kt` with correct color mappings
+- [x] Verify build

@@ -4,6 +4,7 @@ import com.transportsim.data.database.dao.PlayerVehicleDao
 import com.transportsim.data.database.dao.VehicleUpgradeDao
 import com.transportsim.data.database.entities.PlayerVehicleEntity
 import com.transportsim.data.database.entities.VehicleUpgradeEntity
+import com.transportsim.domain.models.FleetVehicle
 import com.transportsim.domain.models.Vehicle
 import com.transportsim.domain.models.VehicleCategory
 import com.transportsim.domain.models.VehicleStatus
@@ -24,7 +25,6 @@ class FleetRepositoryImpl @Inject constructor(
 ) : FleetRepository {
 
     private fun toDomain(entity: PlayerVehicleEntity): Vehicle {
-        // Convert entity to domain (see PlayerRepositoryImpl for full mapping)
         return Vehicle(
             vehicleId = entity.vehicleId,
             typeId = entity.typeId,
@@ -44,11 +44,20 @@ class FleetRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun getVehiclesByCategory(category: VehicleCategory): List<Vehicle> {
-        val prefix = category.name.lowercase()
-        return vehicleDao.getAll()
-            .filter { it.typeId.startsWith(prefix) }
-            .map { toDomain(it) }
+    override suspend fun getFullFleet(): List<FleetVehicle> {
+        val catalog = catalogRepository.getVehicleCatalog()
+        val ownedVehicles = playerRepository.getPlayerVehicles()
+        val ownedMap = ownedVehicles.associateBy { it.typeId }
+        return catalog.map { entry ->
+            FleetVehicle(
+                catalogEntry = entry,
+                ownedVehicle = ownedMap[entry.id]
+            )
+        }
+    }
+
+    override suspend fun getVehiclesByCategory(category: VehicleCategory): List<FleetVehicle> {
+        return getFullFleet().filter { it.catalogEntry.category == category }
     }
 
     override suspend fun getOwnedVehicles(): List<Vehicle> {
@@ -65,14 +74,17 @@ class FleetRepositoryImpl @Inject constructor(
             val spec = catalog.find { it.id == typeId }
                 ?: throw IllegalArgumentException("Vehicle type not found: $typeId")
 
-            // Create a new vehicle entity
+            if (vehicleDao.existsByTypeId(typeId)) {
+                throw IllegalStateException("Vehicle already owned")
+            }
+
             val serialNumber = "KE-${System.currentTimeMillis()}"
             val entity = PlayerVehicleEntity(
                 typeId = typeId,
                 serialNumber = serialNumber,
                 displayName = spec.displayName,
                 status = "IDLE",
-                fuelLevelL = spec.fuelCapacityL * 0.3f, // Start with 30% fuel
+                fuelLevelL = spec.fuelCapacityL * 0.3f,
                 fuelLevelPct = 30f,
                 conditionPct = 100f,
                 engineHealthPct = 100f,
@@ -83,11 +95,12 @@ class FleetRepositoryImpl @Inject constructor(
                 lastMaintainedAt = null,
                 isFavorite = 0
             )
+
             val id = vehicleDao.insert(entity)
             val insertedEntity = vehicleDao.getById(id.toInt())
                 ?: throw IllegalStateException("Failed to insert vehicle")
 
-            // Seed upgrade rows at level 0 for all upgrade slots
+            // Seed upgrades
             val upgradeDefs = catalogRepository.getUpgradeDefinitions()
             upgradeDefs.forEach { upgradeDef ->
                 upgradeDao.insertOrUpdate(
@@ -110,9 +123,7 @@ class FleetRepositoryImpl @Inject constructor(
             if (vehicle.status == "ACTIVE") {
                 throw IllegalStateException("Cannot sell an active vehicle")
             }
-            // Delete upgrades first
             upgradeDao.deleteForVehicle(vehicleId)
-            // Delete vehicle
             vehicleDao.delete(vehicleId)
         }
     }

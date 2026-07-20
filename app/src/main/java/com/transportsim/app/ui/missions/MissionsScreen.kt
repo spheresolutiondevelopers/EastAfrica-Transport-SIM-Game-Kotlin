@@ -3,12 +3,15 @@ package com.transportsim.app.ui.missions
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.transportsim.app.ui.missions.components.*
@@ -20,6 +23,7 @@ import com.transportsim.domain.models.MissionStatus
 fun MissionsScreen(
     onMissionSelected: (String) -> Unit,
     onNavigateBack: () -> Unit,
+    onNavigateToSettings: () -> Unit,
     viewModel: MissionsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -37,7 +41,7 @@ fun MissionsScreen(
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
-                            imageVector = androidx.compose.material.icons.Icons.Default.ArrowBack,
+                            imageVector = Icons.Default.ArrowBack,
                             contentDescription = "Back"
                         )
                     }
@@ -47,7 +51,7 @@ fun MissionsScreen(
                     var expanded by remember { mutableStateOf(false) }
                     IconButton(onClick = { expanded = true }) {
                         Icon(
-                            imageVector = androidx.compose.material.icons.Icons.Default.FilterList,
+                            imageVector = Icons.Default.FilterList,
                             contentDescription = "Filter"
                         )
                     }
@@ -71,6 +75,12 @@ fun MissionsScreen(
                                 }
                             )
                         }
+                    }
+                    IconButton(onClick = onNavigateToSettings) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Settings"
+                        )
                     }
                     // Timer display
                     Surface(

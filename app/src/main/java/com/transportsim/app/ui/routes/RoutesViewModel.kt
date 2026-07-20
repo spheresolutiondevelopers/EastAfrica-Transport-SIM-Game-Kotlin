@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.transportsim.domain.models.Route
+import com.transportsim.domain.models.RouteStats
 import com.transportsim.domain.repositories.PlayerRepository
 import com.transportsim.domain.repositories.RouteRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,33 +25,34 @@ class RoutesViewModel @Inject constructor(
     private var terrainFilter: String? = null
     
     init {
-        loadRoutes()
+        loadData()
     }
     
-    private fun loadRoutes() {
+    private fun loadData() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             
-            // Get all routes
+            // Get all routes and player level
             val allRoutes = routeRepository.getAllRoutes()
-            val unlockedRoutes = routeRepository.getUnlockableRoutes()
+            val playerProfile = playerRepository.getProfile()
+            val playerLevel = playerProfile.level
+            
+            // Load all route stats
+            val allStats = routeRepository.getAllRouteStats()
+            val statsMap = allStats.associateBy { it.routeId }
             
             // Filter by terrain
             val filtered = if (terrainFilter != null) {
-                allRoutes.filter { it.terrainType.name == terrainFilter }
+                allRoutes.filter { it.terrainType.name.equals(terrainFilter, ignoreCase = true) }
             } else {
                 allRoutes
             }
             
-            // Separate unlocked and locked
-            val unlockedIds = unlockedRoutes.map { it.routeId }.toSet()
-            val available = filtered.filter { it.routeId in unlockedIds }
-            val locked = filtered.filter { it.routeId !in unlockedIds }
-            
             _uiState.update { state ->
                 state.copy(
-                    routes = available,
-                    lockedRoutes = locked,
+                    routes = filtered,
+                    routeStatsMap = statsMap,
+                    playerLevel = playerLevel,
                     isLoading = false
                 )
             }
@@ -59,13 +61,18 @@ class RoutesViewModel @Inject constructor(
     
     fun setTerrainFilter(terrain: String?) {
         terrainFilter = terrain
-        loadRoutes()
+        loadData()
     }
     
     fun selectRoute(routeId: String) {
         _uiState.update { state ->
             state.copy(selectedRouteId = routeId)
         }
+    }
+
+    fun startRoute(routeId: String) {
+        // This would typically navigate to the driving screen or start a session
+        // For now, it's a placeholder
     }
     
     fun assignVehicleToRoute(routeId: String) {
@@ -78,13 +85,9 @@ class RoutesViewModel @Inject constructor(
                 }
                 
                 if (availableVehicle != null) {
-                    // In a real app, we would use an AssignVehicleToRouteUseCase
-                    // For now, just update the vehicle's route
                     val updatedVehicle = availableVehicle.copy(currentRouteId = routeId)
                     playerRepository.updateVehicle(updatedVehicle)
-                    
-                    // Refresh routes
-                    loadRoutes()
+                    loadData()
                 }
             } catch (e: Exception) {
                 // Handle error
@@ -96,7 +99,7 @@ class RoutesViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 routeRepository.unlockRoute(routeId)
-                loadRoutes()
+                loadData()
             } catch (e: Exception) {
                 // Handle error
             }
@@ -106,7 +109,8 @@ class RoutesViewModel @Inject constructor(
 
 data class RoutesUiState(
     val routes: List<Route> = emptyList(),
-    val lockedRoutes: List<Route> = emptyList(),
+    val routeStatsMap: Map<String, RouteStats> = emptyMap(),
     val selectedRouteId: String? = null,
+    val playerLevel: Int = 1,
     val isLoading: Boolean = false
 )

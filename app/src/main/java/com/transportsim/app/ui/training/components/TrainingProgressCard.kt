@@ -1,11 +1,8 @@
 package com.transportsim.app.ui.training.components
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -19,7 +16,7 @@ fun TrainingProgressCard(
     modifier: Modifier = Modifier
 ) {
     val progress = if (total > 0) completed.toFloat() / total else 0f
-    
+
     Card(
         modifier = modifier,
         colors = CardDefaults.cardColors(
@@ -53,9 +50,9 @@ fun TrainingProgressCard(
                     color = Purple
                 )
             }
-            
+
             LinearProgressIndicator(
-                progress = progress,
+                progress = { progress },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(6.dp)
@@ -63,7 +60,7 @@ fun TrainingProgressCard(
                 color = Purple,
                 trackColor = MaterialTheme.colorScheme.surfaceVariant
             )
-            
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

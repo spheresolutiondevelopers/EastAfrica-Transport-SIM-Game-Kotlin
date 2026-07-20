@@ -4,8 +4,9 @@
 agp = "9.2.1"
 kotlin = "2.1.0"
 ksp = "2.1.0-1.0.29"
-hilt = "2.55"
+hilt = "2.60.1"
 hiltNavigationCompose = "1.2.0"
+androidx-hilt = "1.2.0"
 
 # Compose & Material3
 compose-bom = "2025.02.00"
@@ -21,7 +22,7 @@ security-crypto = "1.1.0-alpha06"
 datastore-encryption = "1.1.1-beta03"
 
 # SQLCipher
-sqlcipher = "4.6.1"
+sqlcipher = "4.17.0"
 androidx-sqlite = "2.5.0"
 
 # WorkManager
@@ -59,10 +60,13 @@ androidx-compose-material3 = { group = "androidx.compose.material3", name = "mat
 androidx-compose-material-icons = { group = "androidx.compose.material", name = "material-icons-extended" }
 androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation" }
 androidx-compose-runtime = { group = "androidx.compose.runtime", name = "runtime" }
+androidx-compose-ui-google-fonts = { group = "androidx.compose.ui", name = "ui-text-google-fonts", version = "1.7.8" }
 
 # Navigation
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation-compose" }
 androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
+androidx-hilt-work = { group = "androidx.hilt", name = "hilt-work", version.ref = "androidx-hilt" }
+androidx-hilt-compiler = { group = "androidx.hilt", name = "hilt-compiler", version.ref = "androidx-hilt" }
 
 # Lifecycle & Activity
 androidx-lifecycle-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycle-compose" }

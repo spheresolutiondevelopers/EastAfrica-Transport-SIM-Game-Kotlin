@@ -53,4 +53,14 @@ dependencies {
     // Accompanist for utilities
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.35.0-alpha")
     implementation("com.google.accompanist:accompanist-permissions:0.35.0-alpha")
+
+    // Room
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
+
+    // --- Hilt & WorkManager Integration ---
+    implementation(libs.androidx.work.runtime)
+    implementation(libs.androidx.hilt.work)
+    ksp(libs.androidx.hilt.compiler)
 }

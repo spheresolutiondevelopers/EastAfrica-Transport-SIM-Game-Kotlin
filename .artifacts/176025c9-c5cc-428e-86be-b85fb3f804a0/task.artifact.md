@@ -1,0 +1,3 @@
+- [x] Fix type mismatch in `Types.kt`
+- [x] Move external functions to `companion object` in `NativeEngine.kt`
+- [x] Verify build with `./gradlew :bridge:assembleDebug`

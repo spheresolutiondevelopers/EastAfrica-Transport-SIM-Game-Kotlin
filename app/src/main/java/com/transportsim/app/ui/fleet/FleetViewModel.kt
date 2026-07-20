@@ -3,7 +3,7 @@ package com.transportsim.app.ui.fleet
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.transportsim.domain.models.Vehicle
+import com.transportsim.domain.models.FleetVehicle
 import com.transportsim.domain.models.VehicleCategory
 import com.transportsim.domain.models.VehicleStatus
 import com.transportsim.domain.repositories.FleetRepository
@@ -19,98 +19,97 @@ class FleetViewModel @Inject constructor(
     private val playerRepository: PlayerRepository,
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-    
+
     private val _uiState = MutableStateFlow(FleetUiState())
     val uiState: StateFlow<FleetUiState> = _uiState.asStateFlow()
-    
+
     private var filterCategory: VehicleCategory? = null
     private var sortAscending: Boolean = true
-    
+
     init {
         loadFleet()
     }
-    
-    private fun loadFleet() {
+
+    fun loadFleet() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            
-            fleetRepository.observeFleet()
-                .collect { allVehicles ->
-                    // Apply filter
-                    val filtered = if (filterCategory != null) {
-                        allVehicles.filter { 
-                            it.typeId.startsWith(filterCategory!!.name.lowercase())
-                        }
-                    } else {
-                        allVehicles
-                    }
-                    
-                    // Apply sort
-                    val sorted = if (sortAscending) {
-                        filtered.sortedBy { it.displayName ?: it.typeId }
-                    } else {
-                        filtered.sortedByDescending { it.displayName ?: it.typeId }
-                    }
-                    
-                    _uiState.update { state ->
-                        state.copy(
-                            vehicles = sorted,
-                            isLoading = false
-                        )
-                    }
+            _uiState.update { it.copy(isLoading = true, error = null) }
+            try {
+                // Get full fleet (catalog + ownership)
+                val allVehicles = fleetRepository.getFullFleet()
+
+                if (allVehicles.isEmpty()) {
+                    _uiState.update { it.copy(
+                        isLoading = false,
+                        error = "Catalog is empty. Check assets/config/vehicle_specs.json"
+                    ) }
+                    return@launch
                 }
+
+                // Apply filter
+                val filtered = if (filterCategory != null) {
+                    allVehicles.filter { it.catalogEntry.category == filterCategory }
+                } else {
+                    allVehicles
+                }
+
+                // Apply sort (by display name)
+                val sorted = if (sortAscending) {
+                    filtered.sortedBy { it.catalogEntry.displayName }
+                } else {
+                    filtered.sortedByDescending { it.catalogEntry.displayName }
+                }
+
+                _uiState.update { state ->
+                    state.copy(
+                        fleetVehicles = sorted,
+                        isLoading = false,
+                        sortAscending = sortAscending,
+                        error = null
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(
+                    isLoading = false,
+                    error = "Failed to load fleet: ${e.message}"
+                ) }
+            }
         }
     }
-    
+
     fun setFilter(category: VehicleCategory?) {
         filterCategory = category
-        // Trigger reload by re-collecting flow – the collector will handle it
-        // Since the flow is already collected, we just update the filter state
-        // and the collector will re-emit with the new filter applied
-        // We need to force a refresh by reloading
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            // The collector will update with the new filter
-            // We just reset the loading state after a small delay
-            kotlinx.coroutines.delay(100)
-            _uiState.update { it.copy(isLoading = false) }
-        }
+        loadFleet()
     }
-    
+
     fun toggleSortOrder() {
         sortAscending = !sortAscending
-        _uiState.update { state ->
-            val sorted = if (sortAscending) {
-                state.vehicles.sortedBy { it.displayName ?: it.typeId }
-            } else {
-                state.vehicles.sortedByDescending { it.displayName ?: it.typeId }
-            }
-            state.copy(
-                vehicles = sorted,
-                sortAscending = sortAscending
-            )
-        }
+        loadFleet()
     }
-    
-    fun deployVehicle(vehicleId: Int) {
+
+    fun purchaseVehicle(typeId: String) {
         viewModelScope.launch {
             try {
-                val vehicle = playerRepository.getPlayerVehicle(vehicleId)
-                if (vehicle.status == VehicleStatus.IDLE) {
-                    playerRepository.updateVehicleStatus(vehicleId, VehicleStatus.ACTIVE)
-                    // Show notification via callback (in a real app, use a Snackbar or Toast)
-                }
+                fleetRepository.purchaseVehicle(typeId)
+                loadFleet() // Refresh
             } catch (e: Exception) {
                 // Handle error
             }
         }
     }
-    
+
+    fun deployVehicle(vehicleId: Int) {
+        viewModelScope.launch {
+            try {
+                playerRepository.updateVehicleStatus(vehicleId, VehicleStatus.ACTIVE)
+                loadFleet()
+            } catch (e: Exception) {
+            }
+        }
+    }
+
     fun serviceVehicle(vehicleId: Int) {
         viewModelScope.launch {
             try {
-                // In a real app, this would call a service use case
-                // For now, just update the condition
                 val vehicle = playerRepository.getPlayerVehicle(vehicleId)
                 val updatedVehicle = vehicle.copy(
                     conditionPct = 100f,
@@ -119,15 +118,16 @@ class FleetViewModel @Inject constructor(
                     lastMaintainedAt = System.currentTimeMillis().toString()
                 )
                 playerRepository.updateVehicle(updatedVehicle)
+                loadFleet()
             } catch (e: Exception) {
-                // Handle error
             }
         }
     }
 }
 
 data class FleetUiState(
-    val vehicles: List<Vehicle> = emptyList(),
+    val fleetVehicles: List<FleetVehicle> = emptyList(),
     val isLoading: Boolean = false,
-    val sortAscending: Boolean = true
+    val sortAscending: Boolean = true,
+    val error: String? = null
 )

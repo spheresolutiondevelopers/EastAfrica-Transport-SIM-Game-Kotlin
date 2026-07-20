@@ -1,0 +1,8 @@
+- [ ] Create `vehicle_specs.json` catalog
+- [ ] Create `FleetVehicle.kt` domain model
+- [ ] Update `FleetRepository.kt` interface
+- [ ] Update `FleetRepositoryImpl.kt` implementation
+- [ ] Update `FleetViewModel.kt`
+- [ ] Update `FleetScreen.kt`
+- [ ] Update `FleetVehicleCard.kt` and components
+- [ ] Verify build and functionality

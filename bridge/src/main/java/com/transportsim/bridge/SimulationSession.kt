@@ -130,6 +130,16 @@ class SimulationSession @Inject constructor(
     fun getVehicleState() = nativeEngine.vehicleState.value
 
     /**
+     * Observe the vehicle state.
+     */
+    val vehicleState = nativeEngine.vehicleState
+
+    /**
+     * Observe callbacks.
+     */
+    val callbacks = nativeCallbacks
+
+    /**
      * Gets the current simulation metrics.
      */
     fun getMetrics() = nativeEngine.metrics.value
@@ -170,6 +180,12 @@ class SimulationSession @Inject constructor(
      */
     fun resizeRenderer(width: Int, height: Int) {
         nativeEngine.resizeRenderer(width, height)
+    }
+
+    fun renderFrame() {
+        if (isRunning && rendererInitialized) {
+            nativeEngine.renderFrame()
+        }
     }
 
     /**

@@ -6,13 +6,15 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
+import com.transportsim.app.ui.dashboard.models.MapVehicle
 import com.transportsim.app.ui.theme.*
+import com.transportsim.domain.models.VehicleCategory
 
 @Composable
 fun MapView(
@@ -20,6 +22,14 @@ fun MapView(
     vehicles: List<MapVehicle>,
     modifier: Modifier = Modifier
 ) {
+    val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+    val bgColor = if (isDark) {
+        Color(0x6605080F)
+    } else {
+        Color(0x66E8F0F8)
+    }
+    val gridColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)
+
     Card(
         modifier = modifier,
         colors = CardDefaults.cardColors(
@@ -37,15 +47,9 @@ fun MapView(
                 val height = size.height
                 
                 // Background gradient
-                val bgColor = if (MaterialTheme.colorScheme.isDark()) {
-                    Color(0x6605080F)
-                } else {
-                    Color(0x66E8F0F8)
-                }
                 drawRect(color = bgColor)
                 
                 // Draw grid
-                val gridColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)
                 for (x in 0..width.toInt() step 40) {
                     drawLine(
                         color = gridColor,
@@ -198,9 +202,10 @@ private fun LegendItem(
     }
 }
 
-data class MapVehicle(
-    val id: String,
-    val x: Float,
-    val y: Float,
-    val category: VehicleCategory
-)
+// Extension to check luminance if not available
+private fun Color.luminance(): Float {
+    val red = this.red
+    val green = this.green
+    val blue = this.blue
+    return 0.2126f * red + 0.7152f * green + 0.0722f * blue
+}

@@ -3,6 +3,7 @@ package com.transportsim.app.ui.settings
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.transportsim.app.audio.AudioManager
 import com.transportsim.domain.repositories.PlayerRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
@@ -12,6 +13,7 @@ import javax.inject.Inject
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val playerRepository: PlayerRepository,
+    private val audioManager: AudioManager,
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     
@@ -19,6 +21,23 @@ class SettingsViewModel @Inject constructor(
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
     
     init {
+        // Observe audio states
+        viewModelScope.launch {
+            audioManager.musicVolume.collect { vol ->
+                _uiState.update { it.copy(musicVolume = vol * 100f) }
+            }
+        }
+        viewModelScope.launch {
+            audioManager.soundVolume.collect { vol ->
+                _uiState.update { it.copy(soundVolume = vol * 100f) }
+            }
+        }
+        viewModelScope.launch {
+            audioManager.isMuted.collect { muted ->
+                _uiState.update { it.copy(isAudioMuted = muted) }
+            }
+        }
+        
         loadSettings()
     }
     
@@ -68,6 +87,18 @@ class SettingsViewModel @Inject constructor(
     // Audio
     fun setMasterVolume(value: Float) {
         _uiState.update { it.copy(masterVolume = value) }
+    }
+
+    fun setMusicVolume(value: Float) {
+        audioManager.setMusicVolume(value / 100f)
+    }
+
+    fun setSoundVolume(value: Float) {
+        audioManager.setSoundVolume(value / 100f)
+    }
+
+    fun setAudioEnabled(enabled: Boolean) {
+        audioManager.setMuted(!enabled)
     }
     
     fun setEngineSounds(value: Boolean) {
@@ -124,6 +155,9 @@ data class SettingsUiState(
     val trafficDensity: Float = 70f,
     // Audio
     val masterVolume: Float = 80f,
+    val musicVolume: Float = 50f,
+    val soundVolume: Float = 50f,
+    val isAudioMuted: Boolean = false,
     val engineSounds: Boolean = true,
     val ambientSounds: Boolean = true,
     val radioMusic: Boolean = false,
