@@ -24,7 +24,6 @@ class SimulationSession @Inject constructor(
     private val nativeCallbacks: NativeCallbacks
 ) {
     private var physicsJob: Job? = null
-    private var renderJob: Job? = null
     private var stateUpdateJob: Job? = null
     private var sessionHandle: Long = 0L
     private var isRunning = false
@@ -60,11 +59,6 @@ class SimulationSession @Inject constructor(
         // Start the physics loop
         startPhysicsLoop()
 
-        // Start the render loop (if renderer is initialized)
-        if (rendererInitialized) {
-            startRenderLoop()
-        }
-
         // Start the state update loop (60 Hz)
         startStateUpdateLoop()
 
@@ -92,7 +86,6 @@ class SimulationSession @Inject constructor(
     suspend fun stopSession(): Int = withContext(Dispatchers.IO) {
         isRunning = false
         physicsJob?.cancel()
-        renderJob?.cancel()
         stateUpdateJob?.cancel()
 
         val score = nativeEngine.endSession()
@@ -170,9 +163,6 @@ class SimulationSession @Inject constructor(
     ) {
         nativeEngine.initRenderer(surface, width, height, assetManager)
         rendererInitialized = true
-        if (isRunning) {
-            startRenderLoop()
-        }
     }
 
     /**
@@ -200,25 +190,29 @@ class SimulationSession @Inject constructor(
     private fun startPhysicsLoop() {
         physicsJob = CoroutineScope(Dispatchers.Default).launch {
             var previousTime = System.nanoTime()
+            val maxStepsPerUpdate = 100 // Cap to prevent death spiral during jank
+            
             while (isRunning && isActive) {
                 if (!isPaused) {
                     val currentTime = System.nanoTime()
-                    val dt = (currentTime - previousTime) / 1_000_000_000f
+                    // Limit dt to 100ms to avoid huge catch-up spikes
+                    val dt = ((currentTime - previousTime) / 1_000_000_000f).coerceAtMost(0.1f)
                     val stepDt = 0.001f // 1ms fixed step
 
-                    // Step the physics at 1000 Hz
+                    // Step the physics
                     var remaining = dt
-                    while (remaining > 0 && isActive && isRunning) {
-                        val step = stepDt.coerceAtMost(remaining)
-                        nativeEngine.stepPhysics(step)
-                        remaining -= step
-                        // Use a small delay to avoid busylooping
-                        if (remaining > 0) {
-                            delay(1)
-                        }
+                    var stepsTaken = 0
+                    while (remaining >= stepDt && stepsTaken < maxStepsPerUpdate && isActive && isRunning) {
+                        nativeEngine.stepPhysics(stepDt)
+                        remaining -= stepDt
+                        stepsTaken++
                     }
                     previousTime = currentTime
+                    
+                    // Yield to other coroutines
+                    delay(1)
                 } else {
+                    previousTime = System.nanoTime()
                     delay(16) // Wait while paused
                 }
             }
@@ -230,20 +224,6 @@ class SimulationSession @Inject constructor(
             while (isRunning && isActive) {
                 if (!isPaused) {
                     nativeEngine.updateVehicleState()
-                    // Update metrics
-                    val metrics = nativeEngine.getMetrics()
-                    // Metrics are already exposed via flow
-                }
-                delay(16) // 60 Hz
-            }
-        }
-    }
-
-    private fun startRenderLoop() {
-        renderJob = CoroutineScope(Dispatchers.Default).launch {
-            while (isRunning && isActive) {
-                if (!isPaused) {
-                    nativeEngine.renderFrame()
                 }
                 delay(16) // 60 Hz
             }

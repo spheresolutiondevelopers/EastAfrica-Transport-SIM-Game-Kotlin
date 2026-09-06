@@ -49,6 +49,7 @@ benchmark = "1.3.0"
 # Play Billing
 play-billing = "7.1.1"
 asset-pack = "2.3.0"
+sceneview = "2.2.1"
 
 [libraries]
 # Compose (BOM managed)
@@ -122,6 +123,9 @@ androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-
 
 # Macrobenchmark
 androidx-benchmark-macro = { group = "androidx.benchmark", name = "benchmark-macro-junit4", version.ref = "benchmark" }
+
+# SceneView
+sceneview = { group = "io.github.sceneview", name = "sceneview", version.ref = "sceneview" }
 
 # Gradle Plugins for build-logic
 android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }

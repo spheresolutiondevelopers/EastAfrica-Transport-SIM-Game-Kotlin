@@ -36,6 +36,53 @@ class DashboardViewModel @Inject constructor(
         audioManager.toggleMute()
     }
 
+    fun selectCategory(category: VehicleCategory) {
+        viewModelScope.launch {
+            val vehicles = fleetRepository.getVehiclesByCategory(category)
+            _uiState.update { it.copy(
+                categoryVehicles = vehicles,
+                selectedTurntableIndex = 0
+            ) }
+        }
+    }
+
+    fun nextTurntableVehicle() {
+        _uiState.update { state ->
+            if (state.categoryVehicles.isEmpty()) return@update state
+            val nextIndex = (state.selectedTurntableIndex + 1) % state.categoryVehicles.size
+            state.copy(selectedTurntableIndex = nextIndex)
+        }
+    }
+
+    fun previousTurntableVehicle() {
+        _uiState.update { state ->
+            if (state.categoryVehicles.isEmpty()) return@update state
+            val prevIndex = if (state.selectedTurntableIndex > 0) 
+                state.selectedTurntableIndex - 1 
+            else 
+                state.categoryVehicles.size - 1
+            state.copy(selectedTurntableIndex = prevIndex)
+        }
+    }
+
+    /**
+     * Maps vehicle type ID to its 3D asset path.
+     */
+    fun getAssetPathForVehicle(typeId: String?): String? {
+        if (typeId == null) return null
+        
+        // Example mapping based on vehicle type ID prefix
+        return when {
+            typeId.contains("taxi_estate") -> "3d/vehicles/taxi_estate.glb"
+            typeId.contains("bus_city") -> "3d/vehicles/bus_city.glb"
+            typeId.contains("bus_coach") -> "3d/vehicles/bus_coach.glb"
+            typeId.contains("matatu") -> "3d/vehicles/matatu_classic.glb"
+            typeId.contains("pickup") -> "3d/vehicles/pickup_single_cab.glb"
+            // Fallback to existing model to prevent FileNotFoundException in Logcat
+            else -> "3d/vehicles/taxi_estate.glb"
+        }
+    }
+
     private fun loadDashboardData() {
         // Observe player profile and balance
         viewModelScope.launch {
@@ -75,7 +122,7 @@ class DashboardViewModel @Inject constructor(
                             y = (100..500).random().toFloat(),
                             category = VehicleCategory.values().find { 
                                 vehicle.typeId.startsWith(it.name.lowercase()) 
-                            } ?: VehicleCategory.BUS
+                            } ?: VehicleCategory.PICKUP
                         )
                     }
                     _uiState.update { state ->
@@ -85,6 +132,10 @@ class DashboardViewModel @Inject constructor(
                             mapVehicles = mapVehicles,
                             selectedVehicleId = vehicles.firstOrNull()?.vehicleId
                         )
+                    }
+                    // Initial category selection
+                    if (_uiState.value.categoryVehicles.isEmpty()) {
+                        selectCategory(VehicleCategory.PICKUP)
                     }
                 }
         }
@@ -122,16 +173,20 @@ class DashboardViewModel @Inject constructor(
         
         // Load today's stats and alerts
         viewModelScope.launch {
-            val todayStats = economyRepository.getDailyRewards()
-            _uiState.update { state ->
-                state.copy(
-                    todayRevenue = 18240,
-                    todayPassengers = 1847,
-                    todayCargo = 24500,
-                    todayOnTimeRate = 94.2f
-                )
-            }
-            
+            economyRepository.observeTodayPerformance()
+                .collect { performance ->
+                    _uiState.update { state ->
+                        state.copy(
+                            todayRevenue = performance.revenueKsh,
+                            todayPassengers = performance.passengers,
+                            todayCargo = performance.cargoKg,
+                            todayOnTimeRate = performance.onTimeRatePct
+                        )
+                    }
+                }
+        }
+
+        viewModelScope.launch {
             val vehicles = fleetRepository.getOwnedVehicles()
             val alerts = vehicles
                 .filter { it.fuelLevelPct < 40 }

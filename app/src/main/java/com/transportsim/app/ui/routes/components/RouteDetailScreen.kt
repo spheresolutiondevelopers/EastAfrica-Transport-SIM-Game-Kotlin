@@ -35,69 +35,24 @@ fun RouteDetailScreen(
         viewModel.loadRouteDetail(routeId)
     }
     
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = uiState.route?.name ?: "Route Details",
-                        style = MaterialTheme.typography.headlineSmall
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = androidx.compose.material.icons.Icons.Default.ArrowBack,
-                            contentDescription = "Back"
-                        )
-                    }
-                },
-                actions = {
-                    if (uiState.route != null) {
-                        Button(
-                            onClick = { 
-                                // Get a vehicle ID (simplified)
-                                onStartSimulation(routeId, 1) 
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Green,
-                                contentColor = Color.White
-                            )
-                        ) {
-                            Text("▶ Start", fontWeight = FontWeight.Bold)
-                        }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    scrolledContainerColor = MaterialTheme.colorScheme.surface
-                )
-            )
-        }
-    ) { paddingValues ->
+    Box(modifier = Modifier.fillMaxSize()) {
         if (uiState.isLoading) {
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
+                modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
                 CircularProgressIndicator(color = Cyan)
             }
         } else if (uiState.route == null) {
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
+                modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
                 Text("Route not found", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         } else {
             LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
+                modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
@@ -128,7 +83,30 @@ fun RouteDetailScreen(
                 item {
                     TodayStatsCard(routeId = routeId)
                 }
+
+                // Start button at the bottom of the list or as a sticky footer?
+                // Let's put it at the bottom for now.
+                item {
+                    Button(
+                        onClick = { onStartSimulation(routeId, 1) },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Green,
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Text("▶ Start Simulation", fontWeight = FontWeight.Bold)
+                    }
+                }
             }
+        }
+
+        // Back button in the top left
+        IconButton(
+            onClick = onNavigateBack,
+            modifier = Modifier.padding(16.dp).align(Alignment.TopStart)
+        ) {
+            Icon(Icons.Default.ArrowBack, contentDescription = "Back")
         }
     }
 }

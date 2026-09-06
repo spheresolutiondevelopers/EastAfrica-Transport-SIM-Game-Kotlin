@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.transportsim.app.ui.dashboard.models.MapVehicle
 import com.transportsim.app.ui.theme.*
+import com.transportsim.domain.models.FleetVehicle
 import com.transportsim.domain.models.Vehicle
 
 @Composable
@@ -23,6 +24,9 @@ fun DashCenter(
     routeId: String?,
     mapVehicles: List<MapVehicle>,
     selectedVehicle: Vehicle?,
+    turntableVehicle: FleetVehicle?,
+    onNextTurntable: () -> Unit,
+    onPrevTurntable: () -> Unit,
     isMuted: Boolean,
     onToggleAudio: () -> Unit,
     onStartSimulation: () -> Unit,
@@ -49,8 +53,9 @@ fun DashCenter(
             
             // 3D TURNTABLE overlay (top-left)
             VehicleTurntable(
-                vehicleId = selectedVehicle?.vehicleId,
-                isOwned = true, // In real app, check ownership
+                fleetVehicle = turntableVehicle,
+                onNext = onNextTurntable,
+                onPrevious = onPrevTurntable,
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .padding(10.dp)
@@ -60,36 +65,40 @@ fun DashCenter(
                     .border(1.dp, Cyan.copy(alpha = 0.25f), RoundedCornerShape(10.dp))
             )
             
-            // VEHICLE DETAILS PANEL overlay (to the right of turntable)
-            if (selectedVehicle != null) {
-                VehicleDetailPanel(
-                    vehicleName = selectedVehicle.displayName ?: "Vehicle",
-                    maxSpeed = "80 km/h",
-                    power = "6.2L Diesel",
-                    capacity = "48 pax",
-                    isOwned = true,
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .padding(start = 220.dp, top = 10.dp)
-                        .width(180.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(Color(0xE005090E))
-                        .border(1.dp, Cyan.copy(alpha = 0.25f), RoundedCornerShape(10.dp))
-                )
-            }
-            
-            // TOP-RIGHT OVERLAYS
-            Row(
+            // TOP-RIGHT OVERLAYS (Toggles + Details)
+            Column(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(10.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                ThemeToggleButton()
-                AudioToggleButton(
-                    isMuted = isMuted,
-                    onToggle = onToggleAudio
-                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    ThemeToggleButton()
+                    AudioToggleButton(
+                        isMuted = isMuted,
+                        onToggle = onToggleAudio
+                    )
+                }
+
+                // VEHICLE DETAILS PANEL (below toggles)
+                if (turntableVehicle != null) {
+                    val catalog = turntableVehicle.catalogEntry
+                    VehicleDetailPanel(
+                        vehicleName = catalog.displayName,
+                        maxSpeed = "${catalog.maxSpeedKph.toInt()} km/h",
+                        power = "${catalog.enginePowerKw.toInt()} kW",
+                        capacity = if (catalog.passengerCapacity > 0) "${catalog.passengerCapacity} pax" else "${catalog.cargoCapacityKg.toInt()} kg",
+                        isOwned = turntableVehicle.isOwned,
+                        modifier = Modifier
+                            .width(180.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(Color(0xE005090E))
+                            .border(1.dp, Cyan.copy(alpha = 0.25f), RoundedCornerShape(10.dp))
+                    )
+                }
             }
         }
 

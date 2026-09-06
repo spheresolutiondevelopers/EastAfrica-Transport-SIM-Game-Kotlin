@@ -1,0 +1,12 @@
+- `[x]` Build Configuration & Asset Linking
+    - `[x]` Update `app/build.gradle.kts` for asset packs and 16KB alignment
+    - `[x]` Update `native/build.gradle.kts` for 16KB alignment
+- `[x]` Dashboard Logic (State & ViewModel)
+    - `[x]` Update `DashboardUiState` in `DashboardModels.kt`
+    - `[x]` Implement category and turntable navigation in `DashboardViewModel.kt`
+- `[x]` UI Enhancements
+    - `[x]` Update `VehicleTurntable.kt` with arrows and status
+    - `[x]` Connect `DashCenter` and `DashboardScreen`
+- `[x]` Verification
+    - `[x]` Gradle Sync & Build
+    - `[x]` Verify asset inclusion and 3D navigation

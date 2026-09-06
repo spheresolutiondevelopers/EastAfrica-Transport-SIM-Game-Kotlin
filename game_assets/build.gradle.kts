@@ -1,10 +1,7 @@
 plugins {
-    id("transportsim.assetpack")
+    id("transportsim.android.library")
 }
 
-assetPack {
-    packName.set("game_assets")
-    dynamicDelivery {
-        deliveryType.set("install-time")
-    }
+android {
+    namespace = "com.transportsim.game_assets"
 }

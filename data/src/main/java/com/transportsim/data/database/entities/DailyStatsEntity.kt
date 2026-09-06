@@ -9,8 +9,10 @@ data class DailyStatsEntity(
     val statDate: String, // yyyy-MM-dd
     val revenueKsh: Int = 0,
     val passengers: Int = 0,
+    val cargoKg: Int = 0,
     val distanceKm: Double = 0.0,
     val trips: Int = 0,
     val avgScore: Double = 0.0,
+    val onTimeRatePct: Float = 0f,
     val topVehicleId: Int? = null
 )

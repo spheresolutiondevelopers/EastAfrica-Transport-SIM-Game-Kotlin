@@ -94,6 +94,7 @@ target_link_libraries(transportsim_native
 target_compile_definitions(transportsim_native PRIVATE
     -DGLM_FORCE_RADIANS
     -DGLM_FORCE_DEPTH_ZERO_TO_ONE
+    -DFILAMENT_OPENGL_HANDLE_ARENA_SIZE_IN_MB=4
 )
 
 # Set compilation flags

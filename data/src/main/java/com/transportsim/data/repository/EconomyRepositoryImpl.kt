@@ -5,6 +5,7 @@ import com.transportsim.data.database.dao.EconomyLedgerDao
 import com.transportsim.data.database.dao.PlayerProfileDao
 import com.transportsim.data.database.entities.DailyStatsEntity
 import com.transportsim.data.database.entities.EconomyLedgerEntity
+import com.transportsim.domain.models.DailyPerformance
 import com.transportsim.domain.models.DailyReward
 import com.transportsim.domain.models.DailyRewardTrack
 import com.transportsim.domain.models.RewardType
@@ -93,6 +94,25 @@ class EconomyRepositoryImpl @Inject constructor(
     override fun observeBalance(): Flow<Int> {
         return profileDao.observeProfile().map { profile ->
             profile?.balanceKsh ?: 0
+        }
+    }
+
+    override fun observeTodayPerformance(): Flow<DailyPerformance> {
+        val today = dateFormat.format(Date())
+        return dailyStatsDao.observeByDate(today).map { entity ->
+            if (entity != null) {
+                DailyPerformance(
+                    date = entity.statDate,
+                    revenueKsh = entity.revenueKsh,
+                    passengers = entity.passengers,
+                    cargoKg = entity.cargoKg,
+                    trips = entity.trips,
+                    onTimeRatePct = entity.onTimeRatePct,
+                    distanceKm = entity.distanceKm
+                )
+            } else {
+                DailyPerformance.empty(today)
+            }
         }
     }
 }

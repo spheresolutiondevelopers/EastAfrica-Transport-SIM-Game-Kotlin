@@ -1,5 +1,6 @@
 package com.transportsim.app.ui.dashboard.models
 
+import com.transportsim.domain.models.FleetVehicle
 import com.transportsim.domain.models.Mission
 import com.transportsim.domain.models.Vehicle
 import com.transportsim.domain.models.VehicleCategory
@@ -7,6 +8,8 @@ import com.transportsim.domain.models.VehicleCategory
 data class DashboardUiState(
     val categories: List<CategoryProgress> = emptyList(),
     val vehicles: List<Vehicle> = emptyList(),
+    val categoryVehicles: List<FleetVehicle> = emptyList(),
+    val selectedTurntableIndex: Int = 0,
     val activeMissions: List<Mission> = emptyList(),
     val routeStatuses: List<RouteStatus> = emptyList(),
     val fuelAlerts: List<FuelAlert> = emptyList(),
@@ -21,7 +24,9 @@ data class DashboardUiState(
     val mapVehicles: List<MapVehicle> = emptyList(),
     val selectedRouteId: String? = null,
     val selectedVehicleId: Int? = null
-)
+) {
+    val selectedTurntableVehicle: FleetVehicle? = categoryVehicles.getOrNull(selectedTurntableIndex)
+}
 
 data class CategoryProgress(
     val category: VehicleCategory,

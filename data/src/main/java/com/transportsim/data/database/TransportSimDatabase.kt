@@ -27,7 +27,7 @@ import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
         RouteStatsEntity::class,
         TrainingProgressEntity::class
     ],
-    version = 3, // Increment this when schema changes, and add a migration
+    version = 4, // Increment this when schema changes, and add a migration
     exportSchema = true
 )
 @TypeConverters(Converters::class)

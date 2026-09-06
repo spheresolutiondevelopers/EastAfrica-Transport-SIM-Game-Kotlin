@@ -31,47 +31,15 @@ fun GarageScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Garage",
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = Orange
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Back"
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = onNavigateToSettings) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = "Settings"
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    scrolledContainerColor = MaterialTheme.colorScheme.surface
-                )
-            )
-        }
-    ) { padding ->
+    Column(modifier = Modifier.fillMaxSize()) {
         when {
             uiState.isLoading -> {
-                Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = Orange)
                 }
             }
             uiState.vehicles.isEmpty() -> {
-                Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text("🔧", fontSize = 48.sp)
                         Spacer(modifier = Modifier.height(16.dp))
@@ -81,7 +49,7 @@ fun GarageScreen(
                 }
             }
             else -> {
-                Row(modifier = Modifier.fillMaxSize().padding(padding)) {
+                Row(modifier = Modifier.fillMaxSize()) {
                     // Left: Vehicle list
                     GarageVehicleList(
                         vehicles = uiState.vehicles,

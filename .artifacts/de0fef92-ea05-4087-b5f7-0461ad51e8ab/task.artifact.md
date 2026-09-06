@@ -1,0 +1,7 @@
+- [x] Create `DailyPerformance` domain model
+- [x] Update `EconomyRepository` interface with `observeTodayPerformance()`
+- [x] Update `DailyStatsEntity` with `cargoKg` and `onTimeRatePct`
+- [x] Increment database version in `TransportSimDatabase`
+- [x] Implement `observeTodayPerformance()` in `EconomyRepositoryImpl`
+- [x] Update `DashboardViewModel` to use real data from repository
+- [x] Verify Dashboard shows zero stats

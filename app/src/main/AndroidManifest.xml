@@ -25,6 +25,7 @@
         android:theme="@style/Theme.TransportSim"
         android:fullBackupContent="@xml/full_backup_content"
         android:usesCleartextTraffic="false"
+        android:enableOnBackInvokedCallback="true"
         tools:targetApi="31">
 
         <!-- Main Activity – single activity app -->

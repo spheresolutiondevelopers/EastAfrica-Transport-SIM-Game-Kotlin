@@ -1,5 +1,6 @@
 package com.transportsim.app.ui.fleet
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -24,23 +25,26 @@ class FleetViewModel @Inject constructor(
     val uiState: StateFlow<FleetUiState> = _uiState.asStateFlow()
 
     private var filterCategory: VehicleCategory? = null
-    private var sortAscending: Boolean = true
+    private var selectedIndex: Int = 0
 
     init {
-        loadFleet()
+        loadFleetData()
     }
 
-    fun loadFleet() {
+    fun loadFleetData() {
+        Log.d("FleetViewModel", "loadFleetData: Starting fetch...")
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             try {
                 // Get full fleet (catalog + ownership)
                 val allVehicles = fleetRepository.getFullFleet()
+                Log.d("FleetViewModel", "loadFleetData: Fetched ${allVehicles.size} total vehicles")
 
                 if (allVehicles.isEmpty()) {
+                    Log.w("FleetViewModel", "loadFleetData: Catalog is empty")
                     _uiState.update { it.copy(
                         isLoading = false,
-                        error = "Catalog is empty. Check assets/config/vehicle_specs.json"
+                        error = "Catalog is empty."
                     ) }
                     return@launch
                 }
@@ -51,23 +55,36 @@ class FleetViewModel @Inject constructor(
                 } else {
                     allVehicles
                 }
+                Log.d("FleetViewModel", "loadFleetData: Filtered to ${filtered.size} vehicles for $filterCategory")
 
-                // Apply sort (by display name)
-                val sorted = if (sortAscending) {
-                    filtered.sortedBy { it.catalogEntry.displayName }
-                } else {
-                    filtered.sortedByDescending { it.catalogEntry.displayName }
+                // Ensure selected index is valid
+                if (selectedIndex >= filtered.size) {
+                    selectedIndex = if (filtered.isNotEmpty()) 0 else 0
                 }
+
+                // Get categories with counts
+                val categories = VehicleCategory.values().map { category ->
+                    val count = allVehicles.count { it.catalogEntry.category == category }
+                    FleetCategory(category, count)
+                }
+
+                // Get available (not owned) vehicles for purchase modal
+                val available = allVehicles.filter { !it.isOwned }
 
                 _uiState.update { state ->
                     state.copy(
-                        fleetVehicles = sorted,
+                        fleetVehicles = filtered,
+                        selectedIndex = selectedIndex,
+                        categories = categories,
+                        availableVehicles = available,
+                        selectedCategory = filterCategory,
                         isLoading = false,
-                        sortAscending = sortAscending,
                         error = null
                     )
                 }
+                Log.d("FleetViewModel", "loadFleetData: UI State updated successfully")
             } catch (e: Exception) {
+                Log.e("FleetViewModel", "loadFleetData: Error", e)
                 _uiState.update { it.copy(
                     isLoading = false,
                     error = "Failed to load fleet: ${e.message}"
@@ -78,31 +95,65 @@ class FleetViewModel @Inject constructor(
 
     fun setFilter(category: VehicleCategory?) {
         filterCategory = category
-        loadFleet()
+        selectedIndex = 0
+        loadFleetData()
     }
 
-    fun toggleSortOrder() {
-        sortAscending = !sortAscending
-        loadFleet()
+    fun selectVehicle(index: Int) {
+        selectedIndex = index
+        _uiState.update { state ->
+            state.copy(selectedIndex = index)
+        }
+    }
+
+    fun nextVehicle() {
+        val size = _uiState.value.fleetVehicles.size
+        if (size > 1) {
+            selectedIndex = (selectedIndex + 1) % size
+            _uiState.update { state ->
+                state.copy(selectedIndex = selectedIndex)
+            }
+        }
+    }
+
+    fun previousVehicle() {
+        val size = _uiState.value.fleetVehicles.size
+        if (size > 1) {
+            selectedIndex = if (selectedIndex - 1 < 0) size - 1 else selectedIndex - 1
+            _uiState.update { state ->
+                state.copy(selectedIndex = selectedIndex)
+            }
+        }
+    }
+
+    fun toggleViewMode() {
+        _uiState.update { state ->
+            state.copy(isInteriorMode = !state.isInteriorMode)
+        }
+    }
+
+    fun showPurchaseModal() {
+        _uiState.update { state ->
+            state.copy(showPurchaseModal = true)
+        }
+    }
+
+    fun dismissPurchaseModal() {
+        _uiState.update { state ->
+            state.copy(showPurchaseModal = false)
+        }
     }
 
     fun purchaseVehicle(typeId: String) {
         viewModelScope.launch {
             try {
-                fleetRepository.purchaseVehicle(typeId)
-                loadFleet() // Refresh
+                val result = fleetRepository.purchaseVehicle(typeId)
+                if (result.isSuccess) {
+                    dismissPurchaseModal()
+                    loadFleetData()
+                }
             } catch (e: Exception) {
                 // Handle error
-            }
-        }
-    }
-
-    fun deployVehicle(vehicleId: Int) {
-        viewModelScope.launch {
-            try {
-                playerRepository.updateVehicleStatus(vehicleId, VehicleStatus.ACTIVE)
-                loadFleet()
-            } catch (e: Exception) {
             }
         }
     }
@@ -110,24 +161,36 @@ class FleetViewModel @Inject constructor(
     fun serviceVehicle(vehicleId: Int) {
         viewModelScope.launch {
             try {
-                val vehicle = playerRepository.getPlayerVehicle(vehicleId)
-                val updatedVehicle = vehicle.copy(
-                    conditionPct = 100f,
-                    engineHealthPct = 100f,
-                    tyreConditionPct = 100f,
-                    lastMaintainedAt = System.currentTimeMillis().toString()
-                )
-                playerRepository.updateVehicle(updatedVehicle)
-                loadFleet()
+                playerRepository.fullServiceVehicle(vehicleId)
+                loadFleetData()
             } catch (e: Exception) {
+                // Handle error
             }
         }
+    }
+
+    fun upgradeVehicle(vehicleId: Int) {
+        // Navigate to garage with this vehicle
+    }
+
+    fun customizeVehicle(vehicleId: Int) {
+        // Navigate to livery editor
     }
 }
 
 data class FleetUiState(
     val fleetVehicles: List<FleetVehicle> = emptyList(),
+    val selectedIndex: Int = 0,
+    val categories: List<FleetCategory> = emptyList(),
+    val availableVehicles: List<FleetVehicle> = emptyList(),
+    val selectedCategory: VehicleCategory? = null,
     val isLoading: Boolean = false,
-    val sortAscending: Boolean = true,
+    val isInteriorMode: Boolean = false,
+    val showPurchaseModal: Boolean = false,
     val error: String? = null
+)
+
+data class FleetCategory(
+    val category: VehicleCategory,
+    val count: Int
 )

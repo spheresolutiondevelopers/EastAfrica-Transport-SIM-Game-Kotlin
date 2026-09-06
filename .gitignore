@@ -1,9 +1,10 @@
+*.glb
 # Built application files
 *.apk
 *.aar
 *.dex
 *.class
-
+*.glb
 # Gradle files
 .gradle/
 build/

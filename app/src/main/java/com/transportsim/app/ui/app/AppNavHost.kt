@@ -76,8 +76,7 @@ fun AppNavHost(
         composable(Destinations.FLEET) {
             FleetScreen(
                 onVehicleSelected = appState::navigateToFleetDetail,
-                onNavigateBack = appState::popBackStack,
-                onNavigateToSettings = { appState.navigateTo(Destinations.SETTINGS) }
+                onNavigateBack = appState::popBackStack
             )
         }
         

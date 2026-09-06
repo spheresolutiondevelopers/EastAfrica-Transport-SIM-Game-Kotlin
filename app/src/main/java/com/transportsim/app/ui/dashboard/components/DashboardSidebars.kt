@@ -190,10 +190,10 @@ fun DashRight(
     ) {
         PanelTitle("Today's Performance")
 
-        MiniStatCard("Revenue", "KSH ${revenue.toLocaleString()}", Green, "▲ 12.4% vs yesterday")
-        MiniStatCard("Passengers", passengers.toString(), Cyan, "▲ 8.1% vs yesterday")
-        MiniStatCard("Cargo (kg)", cargo.toLocaleString(), Orange, "▼ 3.2% vs yesterday")
-        MiniStatCard("On-Time Rate", "${onTimeRate}%", Gold, "▲ 1.8% vs yesterday")
+        MiniStatCard("Revenue", "KSH ${revenue.toLocaleString()}", Green, "")
+        MiniStatCard("Passengers", passengers.toString(), Cyan, "")
+        MiniStatCard("Cargo (kg)", cargo.toLocaleString(), Orange, "")
+        MiniStatCard("On-Time Rate", "${onTimeRate}%", Gold, "")
 
         Spacer(modifier = Modifier.height(4.dp))
         PanelTitle("Route Status")
@@ -254,13 +254,15 @@ fun MiniStatCard(label: String, value: String, color: Color, change: String) {
                     color = color
                 )
             )
-            Text(
-                text = change,
-                style = MaterialTheme.typography.labelSmall.copy(
-                    color = if (change.contains("▲")) Green else Red,
-                    fontSize = 11.sp
+            if (change.isNotEmpty()) {
+                Text(
+                    text = change,
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        color = if (change.contains("▲")) Green else Red,
+                        fontSize = 11.sp
+                    )
                 )
-            )
+            }
         }
         // Right accent bar
         Box(

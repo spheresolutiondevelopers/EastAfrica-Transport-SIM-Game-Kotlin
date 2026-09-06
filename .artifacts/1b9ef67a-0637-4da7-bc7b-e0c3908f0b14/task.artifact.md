@@ -1,0 +1,15 @@
+- [x] Update theme colors in `Color.kt` (ensure all design tokens are present)
+- [x] Refactor `FleetCategoryHeader.kt` (Apply Orbitron, spacing, and bottom border)
+- [x] Refactor `FleetVehicleCard.kt`
+    - [x] Implement card background gradient and border
+    - [x] Create 52x52 category icon with specific gradients
+    - [x] Add 2x2 stats grid with cell styling
+    - [x] Add Level Badge component
+    - [x] Style action buttons (Deploy, Upgrade, Service)
+    - [x] Implement locked state styling
+- [x] Update `FleetScreen.kt`
+    - [x] Add mesh background effect
+    - [x] Add top gradient accent strip
+    - [x] Style header with gradient "Fleet Manager" title
+    - [x] Match filter dropdown and purchase button styles
+- [x] Verify changes and create walkthrough

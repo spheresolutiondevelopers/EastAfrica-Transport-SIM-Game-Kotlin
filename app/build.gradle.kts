@@ -33,6 +33,15 @@ android {
     buildFeatures {
         buildConfig = true
     }
+
+    packaging {
+        jniLibs {
+            useLegacyPackaging = false
+        }
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
 }
 
 dependencies {
@@ -53,6 +62,9 @@ dependencies {
     // Accompanist for utilities
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.35.0-alpha")
     implementation("com.google.accompanist:accompanist-permissions:0.35.0-alpha")
+
+    // SceneView for 3D rendering
+    implementation(libs.sceneview)
 
     // Room
     implementation(libs.androidx.room.runtime)

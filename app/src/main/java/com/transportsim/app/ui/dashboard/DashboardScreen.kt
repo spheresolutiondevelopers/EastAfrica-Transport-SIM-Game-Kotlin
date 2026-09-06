@@ -30,111 +30,65 @@ fun DashboardScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isMuted by viewModel.isMuted.collectAsStateWithLifecycle()
-    var selectedCategory by remember { mutableStateOf<VehicleCategory?>(VehicleCategory.BUS) }
+    var selectedCategory by remember { mutableStateOf<VehicleCategory?>(VehicleCategory.PICKUP) }
     
     val configuration = LocalConfiguration.current
     val isSmallHeight = configuration.screenHeightDp < 520
     val sidebarWidth = if (isSmallHeight) 190.dp else 220.dp
     
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
-
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        drawerContent = {
-            MobileNavDrawer(
-                currentScreen = "dashboard",
-                onScreenSelected = { screen ->
-                    when (screen) {
-                        "fleet" -> onNavigateToFleet()
-                        "routes" -> onNavigateToRoutes()
-                        "missions" -> onNavigateToMissions()
-                        "garage" -> onNavigateToGarage()
-                        "settings" -> onNavigateToSettings()
-                    }
-                },
-                balance = uiState.playerBalance,
-                level = uiState.playerLevel,
-                xp = 3450, // Example XP value matching design
-                onClose = {
-                    scope.launch { drawerState.close() }
-                }
-            )
-        },
-        gesturesEnabled = isSmallHeight
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(BgDeep)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(BgDeep)
+        // Main 3-Column Content
+        Row(
+            modifier = Modifier.fillMaxSize()
         ) {
-            // High-Fidelity HUD
-            DashboardHUD(
-                balance = uiState.playerBalance,
-                fleetSize = 12, // From design
-                activeSize = 9,  // From design
-                level = uiState.playerLevel,
-                currentScreen = "dashboard",
-                onScreenSelected = { screen ->
-                    when (screen) {
-                        "fleet" -> onNavigateToFleet()
-                        "routes" -> onNavigateToRoutes()
-                        "missions" -> onNavigateToMissions()
-                        "garage" -> onNavigateToGarage()
-                        "settings" -> onNavigateToSettings()
-                    }
+            // LEFT: Vehicle Category Browser
+            DashLeft(
+                categories = uiState.categories,
+                selectedCategory = selectedCategory,
+                onCategorySelected = { category ->
+                    selectedCategory = category
+                    viewModel.selectCategory(category)
                 },
-                onMenuClick = {
-                    scope.launch { drawerState.open() }
-                },
-                modifier = Modifier.height(if (isSmallHeight) 46.dp else 58.dp)
+                modifier = Modifier.width(sidebarWidth)
             )
 
-            // Main 3-Column Content
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-            ) {
-                // LEFT: Vehicle Category Browser
-                DashLeft(
-                    categories = uiState.categories,
-                    selectedCategory = selectedCategory,
-                    onCategorySelected = { category ->
-                        selectedCategory = category
-                    },
-                    modifier = Modifier.width(sidebarWidth)
-                )
+            // CENTER: Map + Overlays
+            val selectedVehicle = uiState.vehicles.find { 
+                it.typeId.startsWith(selectedCategory?.name?.lowercase() ?: "") 
+            } ?: uiState.vehicles.firstOrNull()
+            
+            DashCenter(
+                routeId = uiState.selectedRouteId,
+                mapVehicles = uiState.mapVehicles,
+                selectedVehicle = selectedVehicle,
+                turntableVehicle = uiState.selectedTurntableVehicle,
+                onNextTurntable = { viewModel.nextTurntableVehicle() },
+                onPrevTurntable = { viewModel.previousTurntableVehicle() },
+                isMuted = isMuted,
+                onToggleAudio = { viewModel.toggleMute() },
+                onStartSimulation = {
+                    if (uiState.selectedRouteId != null && uiState.selectedVehicleId != null) {
+                        onStartSimulation(uiState.selectedRouteId!!, uiState.selectedVehicleId!!)
+                    }
+                },
+                onStartTraining = onStartTraining,
+                modifier = Modifier.weight(1f)
+            )
 
-                // CENTER: Map + Overlays
-                DashCenter(
-                    routeId = uiState.selectedRouteId,
-                    mapVehicles = uiState.mapVehicles,
-                    selectedVehicle = uiState.vehicles.find { 
-                        it.typeId.startsWith(selectedCategory?.name?.lowercase() ?: "") 
-                    } ?: uiState.vehicles.firstOrNull(),
-                    isMuted = isMuted,
-                    onToggleAudio = { viewModel.toggleMute() },
-                    onStartSimulation = {
-                        if (uiState.selectedRouteId != null && uiState.selectedVehicleId != null) {
-                            onStartSimulation(uiState.selectedRouteId!!, uiState.selectedVehicleId!!)
-                        }
-                    },
-                    onStartTraining = onStartTraining,
-                    modifier = Modifier.weight(1f)
-                )
-
-                // RIGHT: Performance & Status
-                DashRight(
-                    revenue = uiState.todayRevenue,
-                    passengers = uiState.todayPassengers,
-                    cargo = uiState.todayCargo,
-                    onTimeRate = uiState.todayOnTimeRate,
-                    routeStatuses = uiState.routeStatuses,
-                    fuelAlerts = uiState.fuelAlerts,
-                    modifier = Modifier.width(sidebarWidth)
-                )
-            }
+            // RIGHT: Performance & Status
+            DashRight(
+                revenue = uiState.todayRevenue,
+                passengers = uiState.todayPassengers,
+                cargo = uiState.todayCargo,
+                onTimeRate = uiState.todayOnTimeRate,
+                routeStatuses = uiState.routeStatuses,
+                fuelAlerts = uiState.fuelAlerts,
+                modifier = Modifier.width(sidebarWidth)
+            )
         }
     }
 }

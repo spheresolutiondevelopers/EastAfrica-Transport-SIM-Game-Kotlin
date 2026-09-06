@@ -1,6 +1,8 @@
 package com.transportsim.app.ui.fleet
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -15,26 +17,24 @@ fun FleetDetailScreen(
     onStartSimulation: (String, Int) -> Unit,
     onNavigateToGarage: (Int) -> Unit
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Vehicle #$vehicleId") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Text("Back")
-                    }
-                }
-            )
-        }
-    ) { padding ->
-        Box(modifier = Modifier.padding(padding).fillMaxSize(), contentAlignment = Alignment.Center) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("Fleet Detail for Vehicle $vehicleId")
-                Spacer(modifier = Modifier.height(16.dp))
-                Button(onClick = { onNavigateToGarage(vehicleId) }) {
-                    Text("Go to Garage")
-                }
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("Fleet Detail for Vehicle $vehicleId")
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(onClick = { onNavigateToGarage(vehicleId) }) {
+                Text("Go to Garage")
             }
+        }
+        
+        // Back button in the top left
+        IconButton(
+            onClick = onNavigateBack,
+            modifier = Modifier.padding(16.dp).align(Alignment.TopStart)
+        ) {
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
         }
     }
 }
